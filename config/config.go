@@ -32,12 +32,12 @@ type Database struct {
 	Name     string `env:"DATABASE_NAME,required"`
 	SSLMode  string `env:"DATABASE_SSLMODE" envDefault:"disabled"`
 
-	MaxOpenConnections string        `env:"DATABASE_MAX_OPEN_CONNECTIONS" envDefault:"15"`
-	MaxIdleConnections string        `env:"DATABASE_MAX_IDLE_CONNECTIONS" envDefault:"5"`
+	MaxOpenConnections int           `env:"DATABASE_MAX_OPEN_CONNECTIONS" envDefault:"15"`
+	MaxIdleConnections int           `env:"DATABASE_MAX_IDLE_CONNECTIONS" envDefault:"5"`
 	ConnectionTimeout  time.Duration `env:"DATABASE_CONNECTION_TIMEOUT" envDefault:"15m"`
 }
 
-func (d Database) url() string {
+func (d Database) Url() string {
 
 	url := url.URL{
 		Scheme:   "postgres",
