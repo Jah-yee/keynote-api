@@ -11,7 +11,7 @@ import (
 func NewServer (c config.HTTP, db *gen.Client) *http.Server {
 	return &http.Server{
 		Addr: net.JoinHostPort("",c.Addr),
-		Handler: routes(),
+		Handler: routes(db),
 		ReadTimeout: c.ReadTimeout,
 		WriteTimeout: c.WriteTimeout,
 	}
