@@ -26,5 +26,6 @@ func (User) Fields () []ent.Field {
 func (User) Edges () []ent.Edge {
 	return []ent.Edge {
 		edge.To("credentials",UserCredential.Type).Unique(),
+		edge.To("sessions",UserSession.Type),
 	}
 }

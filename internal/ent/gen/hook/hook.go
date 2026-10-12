@@ -33,6 +33,18 @@ func (f UserCredentialFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserCredentialMutation", m)
 }
 
+// The UserSessionFunc type is an adapter to allow the use of ordinary
+// function as UserSession mutator.
+type UserSessionFunc func(context.Context, *gen.UserSessionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserSessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.UserSessionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserSessionMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, gen.Mutation) bool
 
