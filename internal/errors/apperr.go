@@ -28,3 +28,7 @@ func New(kind Kind, message string) *AppError {
 func Invalid(fields map[string]string) *AppError {
 	return &AppError{Kind: KindInvalid, Message: "Validation Failed", Fields: fields}
 }
+
+func InvalidCredentials() *AppError {
+	return &AppError{Kind: KindInvalid,Message: "Invalid Credentials"}
+}
