@@ -61,7 +61,6 @@ Main components:
 │   └── migrate.go          # migration runner
 ├── .env.example            # sample environment file
 ├── dev-jwt.pem            # local JWT private key for development
-├── keynote-api-access-control-design.md
 ├── go.mod
 ├── go.sum
 ├── README.md
@@ -185,12 +184,3 @@ The project currently stores:
 - `user_sessions`: refresh-token session records including expiry and revocation tracking
 
 User passwords are hashed with Argon2 before storage, and JWTs are signed with a private key defined by `JWT_PRIVATE_KEY_FILE`.
-
-## Access-control design notes
-
-The repository also contains `keynote-api-access-control-design.md`, which describes a future multi-tenant authorization model based on scopes, roles, and permissions (tenant → workspace → project). That design is intentionally separate from the current auth endpoints and reflects a planned expansion beyond the current API surface.
-
-## Notes
-
-- The project is still in active development and the access-control design is a draft.
-- The service is intentionally narrow in scope right now: authentication and session management are the implemented core features.

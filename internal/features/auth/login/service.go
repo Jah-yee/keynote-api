@@ -70,7 +70,7 @@ func (s *Service) Login(
 		return loginOutput{}, appError.InvalidCredentials()
 	}
 
-	token, exp, err := s.signer.Sign(u.ID, session.ID)
+	token, exp, err := s.signer.Sign(user.ID, session.ID)
 	if err != nil {
 		return loginOutput{}, fmt.Errorf("Login error : %v", err)
 	}

@@ -146,3 +146,47 @@ func NewRefreshToken() (plain, hash string, ttl time.Duration, err error) {
 	sum := sha256.Sum256([]byte(plain))
 	return plain, hex.EncodeToString(sum[:]),refreshTokenTTl, nil
 }
+
+func (s *Signer) Verify(token string) (Claims,error) {
+
+	var claims Claims
+
+	parsed, err := jwt.ParseWithClaims(
+		token,
+		&claims,
+		func (t *jwt.Token) (interface{},error){
+
+			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			
+			kid, ok := t.Header["kid"].(string)
+			if !ok {
+				return nil, fmt.Errorf("missing kid in token header")
+			}
+
+			var publickey *rsa.PublicKey
+			for _,k := range s.keys {
+				if k.kid == kid {
+					publickey = &k.priv.PublicKey
+					break
+				}
+			}
+
+			if publickey == nil {
+				return  nil,fmt.Errorf("signing king not found for kid :%v",kid)
+			}
+
+			return publickey,nil
+		},
+	)
+	
+	if err != nil {
+		return claims,err
+	}
+
+	if !parsed.Valid {
+		return claims,fmt.Errorf("Invalid Token")
+	}
+	return claims,nil
+}
