@@ -22,7 +22,7 @@ func NewService(db *gen.Client, signer *tokens.Signer) *Service {
 	return &Service{db: db, signer: signer}
 }
 
-type loginOutput struct {
+type LoginOutput struct {
 	AccessToken          string
 	RefreshToken         string
 	ExpireAT             time.Time
@@ -33,7 +33,9 @@ func (s *Service) Login(
 	ctx context.Context,
 	email string,
 	password string,
-) (loginOutput, error) {
+) (LoginOutput, error) {
+
+	var output LoginOutput
 
 	u, err := s.db.UserCredential.Query().
 		Where(usercredential.HasUsersWith(user.Email(email))).
@@ -43,21 +45,21 @@ func (s *Service) Login(
 
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return loginOutput{}, appError.InvalidCredentials()
+			return output, appError.InvalidCredentials()
 		}
-		return loginOutput{}, fmt.Errorf("Login error : %v", err)
+		return output, fmt.Errorf("Login error : %v", err)
 	}
 
 	user := u.Edges.Users
 
 	ok := argon.VerifyPassword(password, u.PasswordHash)
 	if !ok {
-		return loginOutput{}, appError.InvalidCredentials()
+		return output, appError.InvalidCredentials()
 	}
 
 	refresh, refreshHash, refreshttl, err := tokens.NewRefreshToken()
 	if err != nil {
-		return loginOutput{}, appError.InvalidCredentials()
+		return output, appError.InvalidCredentials()
 	}
 
 	session, err := s.db.UserSession.Create().
@@ -67,18 +69,18 @@ func (s *Service) Login(
 		Save(ctx)
 		
 	if err != nil {
-		return loginOutput{}, appError.InvalidCredentials()
+		return output, appError.InvalidCredentials()
 	}
 
 	token, exp, err := s.signer.Sign(user.ID, session.ID)
 	if err != nil {
-		return loginOutput{}, fmt.Errorf("Login error : %v", err)
+		return output, fmt.Errorf("Login error : %v", err)
 	}
 
-	return loginOutput{
-		AccessToken:  token,
-		RefreshToken: refresh,
-		ExpireAT:     exp,
-		RefreshTokenExpireAt: refreshttl,
-	}, nil
+	output.AccessToken = token
+	output.RefreshToken = refresh
+	output.ExpireAT = exp
+	output.RefreshTokenExpireAt = refreshttl
+
+	return output, nil
 }
