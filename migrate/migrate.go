@@ -42,7 +42,7 @@ func Run(ctx context.Context, db *sql.DB, fsys fs.FS) error {
 		return err
 	}
 
-	files, err := fs.Glob(fsys, "*.up.sql")
+	files, err := fs.Glob(fsys, "*.sql")
 	if err != nil {
 		return fmt.Errorf("list migrations: %w", err)
 	}
