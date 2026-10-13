@@ -7,6 +7,7 @@ import (
 
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
+	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
 	"github.com/caneel7/keynote-api/internal/ent/schema"
 	"github.com/google/uuid"
 )
@@ -45,4 +46,28 @@ func init() {
 	usercredentialDescID := usercredentialFields[0].Descriptor()
 	// usercredential.DefaultID holds the default value on creation for the id field.
 	usercredential.DefaultID = usercredentialDescID.Default.(func() uuid.UUID)
+	usersessionFields := schema.UserSession{}.Fields()
+	_ = usersessionFields
+	// usersessionDescRefreshTokenHash is the schema descriptor for refresh_token_hash field.
+	usersessionDescRefreshTokenHash := usersessionFields[1].Descriptor()
+	// usersession.RefreshTokenHashValidator is a validator for the "refresh_token_hash" field. It is called by the builders before save.
+	usersession.RefreshTokenHashValidator = usersessionDescRefreshTokenHash.Validators[0].(func(string) error)
+	// usersessionDescUserAgent is the schema descriptor for user_agent field.
+	usersessionDescUserAgent := usersessionFields[2].Descriptor()
+	// usersession.UserAgentValidator is a validator for the "user_agent" field. It is called by the builders before save.
+	usersession.UserAgentValidator = usersessionDescUserAgent.Validators[0].(func(string) error)
+	// usersessionDescCreatedAt is the schema descriptor for created_at field.
+	usersessionDescCreatedAt := usersessionFields[6].Descriptor()
+	// usersession.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usersession.DefaultCreatedAt = usersessionDescCreatedAt.Default.(func() time.Time)
+	// usersessionDescUpdatedAt is the schema descriptor for updated_at field.
+	usersessionDescUpdatedAt := usersessionFields[7].Descriptor()
+	// usersession.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	usersession.DefaultUpdatedAt = usersessionDescUpdatedAt.Default.(func() time.Time)
+	// usersession.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	usersession.UpdateDefaultUpdatedAt = usersessionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// usersessionDescID is the schema descriptor for id field.
+	usersessionDescID := usersessionFields[0].Descriptor()
+	// usersession.DefaultID holds the default value on creation for the id field.
+	usersession.DefaultID = usersessionDescID.Default.(func() uuid.UUID)
 }

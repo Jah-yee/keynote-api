@@ -6,6 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	httpError "github.com/caneel7/keynote-api/internal/errors"
+	types "github.com/caneel7/keynote-api/internal/types"
 )
 
 type Registrar interface {
@@ -13,7 +14,7 @@ type Registrar interface {
 		ctx context.Context,
 		email string,
 		password string,
-	) (User, error)
+	) (types.User, error)
 }
 
 type RegisterUserRequest struct {

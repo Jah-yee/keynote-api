@@ -6,16 +6,12 @@ import (
 	"net/mail"
 	"strings"
 
-	common "github.com/caneel7/keynote-api/internal/common"
+	argon "github.com/caneel7/keynote-api/internal/common/password"
 	"github.com/caneel7/keynote-api/internal/ent/gen"
 	appError "github.com/caneel7/keynote-api/internal/errors"
-	"github.com/google/uuid"
+	types "github.com/caneel7/keynote-api/internal/types"
 )
 
-type User struct {
-	ID    uuid.UUID
-	Email string
-}
 
 type Service struct {
 	db *gen.Client
@@ -29,47 +25,47 @@ func (s *Service) Register(
 	ctx context.Context,
 	email string,
 	password string,
-) (User, error) {
+) (types.User, error) {
 
 	email = strings.ToLower(strings.TrimSpace(email))
 
 	if _, err := mail.ParseAddress(email); err != nil {
-		return User{}, appError.Invalid(map[string]string{
+		return types.User{}, appError.Invalid(map[string]string{
 			email: "Invalid Email",
 		}) 
 	}
 
-	hash, err := common.HashPassword(password);
+	hash, err := argon.HashPassword(password);
 	if err != nil {
-		return User{}, err
+		return types.User{}, err
 	}
 
 	tx, err := s.db.Tx(ctx)
 	if err != nil {
-		return User{},nil
+		return types.User{},nil
 	}
 	defer tx.Rollback()
 
 	user, err := tx.User.Create().SetEmail(email).Save(ctx)
 	if err != nil {
 		if gen.IsConstraintError(err) {
-			return User{}, appError.New(
+			return types.User{}, appError.New(
 				appError.KindConflict,
 				"Email Already Exists",
 			)
 		}
-		return User{},fmt.Errorf("Error creating user : %v",err)
+		return types.User{},fmt.Errorf("Error creating user : %v",err)
 	}
 
 	if _, err := tx.UserCredential.Create().SetUsers(user).SetPasswordHash(hash).Save(ctx); err != nil {
-		return User{},fmt.Errorf("Error saving user credentials : %v",err)
+		return types.User{},fmt.Errorf("Error saving user credentials : %v",err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return User{}, fmt.Errorf("Error commiting to db : %v", err)
+		return types.User{}, fmt.Errorf("Error commiting to db : %v", err)
 	}
 
-	return User{
+	return types.User{
 		ID: user.ID,
 		Email: user.Email,
 	},nil

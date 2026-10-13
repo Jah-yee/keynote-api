@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
+	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
 	"github.com/google/uuid"
 )
 
@@ -87,6 +88,21 @@ func (_c *UserCreate) SetNillableCredentialsID(id *uuid.UUID) *UserCreate {
 // SetCredentials sets the "credentials" edge to the UserCredential entity.
 func (_c *UserCreate) SetCredentials(v *UserCredential) *UserCreate {
 	return _c.SetCredentialsID(v.ID)
+}
+
+// AddSessionIDs adds the "sessions" edge to the UserSession entity by IDs.
+func (_c *UserCreate) AddSessionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddSessionIDs(ids...)
+	return _c
+}
+
+// AddSessions adds the "sessions" edges to the UserSession entity.
+func (_c *UserCreate) AddSessions(v ...*UserSession) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -210,6 +226,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usercredential.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SessionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usersession.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

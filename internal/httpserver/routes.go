@@ -3,8 +3,9 @@ package httpserver
 import (
 	"net/http"
 
-	auth "github.com/caneel7/keynote-api/internal/features/auth"
+	"github.com/caneel7/keynote-api/internal/common/tokens"
 	"github.com/caneel7/keynote-api/internal/ent/gen"
+	auth "github.com/caneel7/keynote-api/internal/features/auth"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
@@ -18,13 +19,13 @@ func newApi (router chi.Router) huma.API {
 	)
 }
 
-func routes (db *gen.Client) http.Handler {
+func routes (db *gen.Client,signer *tokens.Signer) http.Handler {
 
 	router := chi.NewRouter()
 	api := newApi(router)
 
 	healthHandler(api)
-	auth.Mount(api,db)
+	auth.Mount(api,db,signer)
 
 	return router;
 }
