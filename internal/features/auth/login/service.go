@@ -48,6 +48,8 @@ func (s *Service) Login(
 		return loginOutput{}, fmt.Errorf("Login error : %v", err)
 	}
 
+	user := u.Edges.Users
+
 	ok := argon.VerifyPassword(password, u.PasswordHash)
 	if !ok {
 		return loginOutput{}, appError.InvalidCredentials()
@@ -59,12 +61,10 @@ func (s *Service) Login(
 	}
 
 	session, err := s.db.UserSession.Create().
-		SetUserID(u.ID).
+		SetUserID(user.ID).
 		SetRefreshTokenHash(refreshHash).
 		SetExpiresAt(time.Now().Add(time.Duration(refreshttl))).
 		Save(ctx)
-
-	fmt.Print(err)
 		
 	if err != nil {
 		return loginOutput{}, appError.InvalidCredentials()
