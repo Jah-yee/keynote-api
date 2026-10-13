@@ -1,6 +1,6 @@
 env "local" {
   src = "ent://internal/ent/schema"
-  dev = "postgresql://postres:postgres@localhost:5432/keynote"
+  dev = ""
   migration {
     dir = "file://migrate/migrations"
   }
