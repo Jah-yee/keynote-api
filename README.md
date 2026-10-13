@@ -13,6 +13,7 @@ Main components:
 - Database connection and setup: `database/`
 - HTTP server and route registration: `internal/httpserver/`
 - Auth features: `internal/features/auth/`
+- Auth middleware: `internal/common/middleware/auth/`
 - Ent schemas: `internal/ent/schema/`
 - JWT helpers and token logic: `internal/common/tokens/`
 - Database migration runner: `migrate/`
@@ -31,40 +32,78 @@ Main components:
 
 - User registration at `POST /auth/register`
 - User login at `POST /auth/login`
+- Protected authenticated user endpoint at `GET /auth/me`
 - Public JWKS endpoint at `GET /.well-known/jwks.json`
 - Health endpoint at `GET /health`
 - Refresh-token session persistence with cookie-based refresh token handling
 - Password hashing using Argon2
 - PostgreSQL-backed persistence and schema migrations
+- Protected route grouping via JWT verification middleware
 
 ## Repository structure
 
 ```text
 .
 ├── cmd/
-│   ├── api/                 # application entrypoint
-│   └── migrate/             # migration runner
-├── config/                 # environment/config parsing
-├── database/               # PostgreSQL connection utilities
+│   ├── api/                    # application entrypoint
+│   └── migrate/                # migration runner
+├── config/
+│   └── config.go               # environment/config parsing
+├── database/
+│   ├── database.go             # PostgreSQL connection helpers
+│   └── ent.go                  # Ent client wrapper setup
 ├── internal/
-│   ├── common/             # shared helpers (argon, jwt signer)
+│   ├── common/
+│   │   ├── middleware/
+│   │   │   └── auth/
+│   │   │       └── verifyjwt.go    # JWT verification middleware
+│   │   ├── password/
+│   │   │   └── argon.go
+│   │   └── tokens/
+│   │       └── signer.go           # JWT signing + verification helpers
 │   ├── ent/
-│   │   ├── schema/         # Ent models for users, credentials, sessions
-│   │   └── gen/            # generated Ent client code
-│   ├── errors/             # API error helpers
+│   │   ├── gen/                   # generated Ent client
+│   │   ├── schema/
+│   │   │   ├── users.go
+│   │   │   ├── usercredentials.go
+│   │   │   └── usersessions.go
+│   │   └── generate.go
+│   ├── errors/
+│   │   ├── apperr.go
+│   │   └── httperr.go
 │   ├── features/
-│   │   └── auth/           # register/login/jwks routes and services
-│   ├── httpserver/         # HTTP server wiring and routes
-│   └── types/              # DTO and shared types
+│   │   └── auth/
+│   │       ├── jwks/
+│   │       │   └── route.go
+│   │       ├── login/
+│   │       │   ├── route.go
+│   │       │   └── service.go
+│   │       ├── me/
+│   │       │   ├── route.go
+│   │       │   └── service.go
+│   │       ├── register/
+│   │       │   ├── route.go
+│   │       │   └── service.go
+│   │       └── routes.go           # public/protected auth mount points
+│   ├── httpserver/
+│   │   ├── health.go
+│   │   ├── routes.go               # protected group registration
+│   │   └── server.go
+│   └── types/
+│       └── user.go
 ├── migrate/
-│   ├── migrations/         # SQL migrations
-│   └── migrate.go          # migration runner
-├── .env.example            # sample environment file
-├── dev-jwt.pem            # local JWT private key for development
+│   ├── embed.go
+│   ├── migrate.go
+│   └── migrations/                # SQL migration files
+├── .env.example                    # sample environment file
+├── .gitignore
+├── dev-jwt.pem                     # local JWT private key for development
+├── atlas.hcl                       # Atlas migration metadata
+├── keynote-api-access-control-design.md
 ├── go.mod
 ├── go.sum
 ├── README.md
-└── atlas.hcl              # Atlas migration metadata
+└── .env                            # local env file (not committed)
 ```
 
 ## Prerequisites
@@ -167,6 +206,15 @@ Content-Type: application/json
 
 On success, the response includes an access token, token type, expiry, and a `refresh_token` cookie (`HttpOnly`, secure cookie handling for refreshed sessions).
 
+### Me (authenticated user)
+
+```http
+GET /auth/me
+Authorization: Bearer <token>
+```
+
+This route is registered on the protected API group and requires a valid JWT. The middleware validates the Authorization header and injects the parsed claims into the request context before the handler runs.
+
 ### JWKS
 
 ```http
@@ -174,6 +222,26 @@ GET /.well-known/jwks.json
 ```
 
 This returns the public signing keys used to validate JWTs.
+
+## Protected routes and JWT middleware
+
+Protected endpoints are mounted on a dedicated Huma group that applies the JWT middleware before route handlers execute.
+
+```go
+protectedAPI := huma.NewGroup(api)
+protectedAPI.UseMiddleware(authMiddleware.VerifyJWT(api, signer))
+
+auth.Mount(api, protectedAPI, db, signer)
+```
+
+The middleware:
+
+- reads the `Authorization: Bearer <token>` header
+- validates the token with the configured signer
+- stores the claims in the context under `jwt_claims`
+- rejects requests with `401 Unauthorized` when the JWT is missing, malformed, or invalid
+
+This pattern is what secures the `GET /auth/me` route. The handler pulls the subject from the context and resolves the current user.
 
 ## Authentication model
 
@@ -184,3 +252,5 @@ The project currently stores:
 - `user_sessions`: refresh-token session records including expiry and revocation tracking
 
 User passwords are hashed with Argon2 before storage, and JWTs are signed with a private key defined by `JWT_PRIVATE_KEY_FILE`.
+
+
