@@ -8,6 +8,7 @@ import (
 	"github.com/caneel7/keynote-api/internal/features/auth/jwks"
 	"github.com/caneel7/keynote-api/internal/features/auth/login"
 	"github.com/caneel7/keynote-api/internal/features/auth/me"
+	"github.com/caneel7/keynote-api/internal/features/auth/refresh"
 	"github.com/caneel7/keynote-api/internal/features/auth/register"
 )
 
@@ -21,6 +22,7 @@ func Mount(
 	register.RegisterUserRoute(public, register.NewService(db))
 	jwks.JwksRoute(public, signer)
 	login.LoginRoute(public, login.NewService(db, signer))
-
+	refresh.RefreshTokenRoute(public,refresh.NewService(db,signer))
 	me.GetMeRoute(protected, me.NewService(db))
+
 }
