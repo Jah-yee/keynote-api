@@ -27,6 +27,7 @@ func main () {
 	entClient := database.NewEntClient(db)
 	
 	server := httpserver.NewServer(env.HTTP,entClient)
-	log.Printf("Server Start On port : %v",server.Addr)
+	log.Printf("Server Start On port %v",server.Addr)
+	log.Printf("For OpenApi doc go to %v", server.Addr + "/docs")
 	log.Fatal(server.ListenAndServe())
 }
