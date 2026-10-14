@@ -37,6 +37,8 @@ func From(err error) error {
 		return huma.Error404NotFound(appErr.Message)
 	case KindConflict:
 		return huma.Error409Conflict(appErr.Message)
+	case KindBadRequest:
+		return huma.Error400BadRequest(appErr.Message)
 	default:
 		log.Printf("error with unmapped kind %d: %v", appErr.Kind, err)
 		return huma.Error500InternalServerError("something went wrong")
