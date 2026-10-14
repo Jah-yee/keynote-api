@@ -21,6 +21,18 @@ func (f EntityKindFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.EntityKindMutation", m)
 }
 
+// The ProjectFunc type is an adapter to allow the use of ordinary
+// function as Project mutator.
+type ProjectFunc func(context.Context, *gen.ProjectMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProjectFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ProjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ProjectMutation", m)
+}
+
 // The StateDefinitionsFunc type is an adapter to allow the use of ordinary
 // function as StateDefinitions mutator.
 type StateDefinitionsFunc func(context.Context, *gen.StateDefinitionsMutation) (gen.Value, error)
@@ -79,6 +91,18 @@ func (f UserSessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value,
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserSessionMutation", m)
+}
+
+// The WorkspaceFunc type is an adapter to allow the use of ordinary
+// function as Workspace mutator.
+type WorkspaceFunc func(context.Context, *gen.WorkspaceMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkspaceFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.WorkspaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkspaceMutation", m)
 }
 
 // Condition is a hook condition function.

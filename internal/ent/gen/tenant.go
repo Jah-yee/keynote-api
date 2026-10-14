@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
 	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
+	"github.com/caneel7/keynote-api/internal/ent/gen/user"
+	"github.com/caneel7/keynote-api/internal/ent/gen/workspace"
 	"github.com/google/uuid"
 )
 
@@ -23,6 +25,10 @@ type Tenant struct {
 	Name string `json:"name,omitempty"`
 	// Slug holds the value of the "slug" field.
 	Slug string `json:"slug,omitempty"`
+	// StatusID holds the value of the "status_id" field.
+	StatusID uuid.UUID `json:"status_id,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -31,18 +37,23 @@ type Tenant struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TenantQuery when eager-loading is set.
-	Edges                     TenantEdges `json:"edges"`
-	state_definitions_tenants *uuid.UUID
-	selectValues              sql.SelectValues
+	Edges        TenantEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // TenantEdges holds the relations/edges for other nodes in the graph.
 type TenantEdges struct {
 	// State holds the value of the state edge.
 	State *StateDefinitions `json:"state,omitempty"`
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// Workspace holds the value of the workspace edge.
+	Workspace *Workspace `json:"workspace,omitempty"`
+	// Projects holds the value of the projects edge.
+	Projects []*Project `json:"projects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [4]bool
 }
 
 // StateOrErr returns the State value or an error if the edge
@@ -56,6 +67,37 @@ func (e TenantEdges) StateOrErr() (*StateDefinitions, error) {
 	return nil, &NotLoadedError{edge: "state"}
 }
 
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TenantEdges) UserOrErr() (*User, error) {
+	if e.User != nil {
+		return e.User, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// WorkspaceOrErr returns the Workspace value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TenantEdges) WorkspaceOrErr() (*Workspace, error) {
+	if e.Workspace != nil {
+		return e.Workspace, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: workspace.Label}
+	}
+	return nil, &NotLoadedError{edge: "workspace"}
+}
+
+// ProjectsOrErr returns the Projects value or an error if the edge
+// was not loaded in eager-loading.
+func (e TenantEdges) ProjectsOrErr() ([]*Project, error) {
+	if e.loadedTypes[3] {
+		return e.Projects, nil
+	}
+	return nil, &NotLoadedError{edge: "projects"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Tenant) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -65,10 +107,8 @@ func (*Tenant) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case tenant.FieldCreatedAt, tenant.FieldUpdatedAt, tenant.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case tenant.FieldID:
+		case tenant.FieldID, tenant.FieldStatusID, tenant.FieldCreatedBy:
 			values[i] = new(uuid.UUID)
-		case tenant.ForeignKeys[0]: // state_definitions_tenants
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -102,6 +142,18 @@ func (_m *Tenant) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Slug = value.String
 			}
+		case tenant.FieldStatusID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field status_id", values[i])
+			} else if value != nil {
+				_m.StatusID = *value
+			}
+		case tenant.FieldCreatedBy:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
+			} else if value != nil {
+				_m.CreatedBy = *value
+			}
 		case tenant.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -121,13 +173,6 @@ func (_m *Tenant) assignValues(columns []string, values []any) error {
 				_m.DeletedAt = new(time.Time)
 				*_m.DeletedAt = value.Time
 			}
-		case tenant.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field state_definitions_tenants", values[i])
-			} else if value.Valid {
-				_m.state_definitions_tenants = new(uuid.UUID)
-				*_m.state_definitions_tenants = *value.S.(*uuid.UUID)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -144,6 +189,21 @@ func (_m *Tenant) Value(name string) (ent.Value, error) {
 // QueryState queries the "state" edge of the Tenant entity.
 func (_m *Tenant) QueryState() *StateDefinitionsQuery {
 	return NewTenantClient(_m.config).QueryState(_m)
+}
+
+// QueryUser queries the "user" edge of the Tenant entity.
+func (_m *Tenant) QueryUser() *UserQuery {
+	return NewTenantClient(_m.config).QueryUser(_m)
+}
+
+// QueryWorkspace queries the "workspace" edge of the Tenant entity.
+func (_m *Tenant) QueryWorkspace() *WorkspaceQuery {
+	return NewTenantClient(_m.config).QueryWorkspace(_m)
+}
+
+// QueryProjects queries the "projects" edge of the Tenant entity.
+func (_m *Tenant) QueryProjects() *ProjectQuery {
+	return NewTenantClient(_m.config).QueryProjects(_m)
 }
 
 // Update returns a builder for updating this Tenant.
@@ -174,6 +234,12 @@ func (_m *Tenant) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("slug=")
 	builder.WriteString(_m.Slug)
+	builder.WriteString(", ")
+	builder.WriteString("status_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StatusID))
+	builder.WriteString(", ")
+	builder.WriteString("created_by=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

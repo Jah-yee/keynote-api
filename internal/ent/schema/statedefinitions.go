@@ -17,6 +17,7 @@ type StateDefinitions struct {
 func (StateDefinitions) Fields () []ent.Field {
 	return []ent.Field{
 		field.UUID("id",uuid.UUID{}).Default(uuid.New),
+		field.UUID("entity_id",uuid.UUID{}),
 		field.String("key").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -27,8 +28,11 @@ func (StateDefinitions) Fields () []ent.Field {
 
 func (StateDefinitions) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("entity_kind",EntityKind.Type).Ref("state_definitions").Unique().Required(),
+		edge.From("entity_kind",EntityKind.Type).Ref("state_definitions").Field("entity_id").Unique().Required(),
 		edge.To("tenants",Tenant.Type),
+		edge.To("user",User.Type),
+		edge.To("workspace",Workspace.Type),
+		edge.To("projects",Project.Type),
 	}
 }
 

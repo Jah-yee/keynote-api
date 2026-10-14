@@ -25,7 +25,6 @@ type UserCredentialQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserCredential
 	withUsers  *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -371,18 +370,11 @@ func (_q *UserCredentialQuery) prepareQuery(ctx context.Context) error {
 func (_q *UserCredentialQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserCredential, error) {
 	var (
 		nodes       = []*UserCredential{}
-		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withUsers != nil,
 		}
 	)
-	if _q.withUsers != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, usercredential.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UserCredential).scanValues(nil, columns)
 	}
@@ -414,10 +406,7 @@ func (_q *UserCredentialQuery) loadUsers(ctx context.Context, query *UserQuery, 
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*UserCredential)
 	for i := range nodes {
-		if nodes[i].user_credentials == nil {
-			continue
-		}
-		fk := *nodes[i].user_credentials
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -434,7 +423,7 @@ func (_q *UserCredentialQuery) loadUsers(ctx context.Context, query *UserQuery, 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_credentials" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -467,6 +456,9 @@ func (_q *UserCredentialQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != usercredential.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withUsers != nil {
+			_spec.Node.AddColumnOnce(usercredential.FieldUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

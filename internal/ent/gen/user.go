@@ -9,6 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
+	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/google/uuid"
@@ -21,6 +23,8 @@ type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// StatusID holds the value of the "status_id" field.
+	StatusID uuid.UUID `json:"status_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -39,9 +43,15 @@ type UserEdges struct {
 	Credentials *UserCredential `json:"credentials,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*UserSession `json:"sessions,omitempty"`
+	// State holds the value of the state edge.
+	State *StateDefinitions `json:"state,omitempty"`
+	// Tenant holds the value of the tenant edge.
+	Tenant *Tenant `json:"tenant,omitempty"`
+	// Creator holds the value of the creator edge.
+	Creator []*Workspace `json:"creator,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // CredentialsOrErr returns the Credentials value or an error if the edge
@@ -64,6 +74,37 @@ func (e UserEdges) SessionsOrErr() ([]*UserSession, error) {
 	return nil, &NotLoadedError{edge: "sessions"}
 }
 
+// StateOrErr returns the State value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) StateOrErr() (*StateDefinitions, error) {
+	if e.State != nil {
+		return e.State, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: statedefinitions.Label}
+	}
+	return nil, &NotLoadedError{edge: "state"}
+}
+
+// TenantOrErr returns the Tenant value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) TenantOrErr() (*Tenant, error) {
+	if e.Tenant != nil {
+		return e.Tenant, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: tenant.Label}
+	}
+	return nil, &NotLoadedError{edge: "tenant"}
+}
+
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatorOrErr() ([]*Workspace, error) {
+	if e.loadedTypes[4] {
+		return e.Creator, nil
+	}
+	return nil, &NotLoadedError{edge: "creator"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -73,7 +114,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID:
+		case user.FieldID, user.FieldStatusID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -101,6 +142,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
 				_m.Email = value.String
+			}
+		case user.FieldStatusID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field status_id", values[i])
+			} else if value != nil {
+				_m.StatusID = *value
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -144,6 +191,21 @@ func (_m *User) QuerySessions() *UserSessionQuery {
 	return NewUserClient(_m.config).QuerySessions(_m)
 }
 
+// QueryState queries the "state" edge of the User entity.
+func (_m *User) QueryState() *StateDefinitionsQuery {
+	return NewUserClient(_m.config).QueryState(_m)
+}
+
+// QueryTenant queries the "tenant" edge of the User entity.
+func (_m *User) QueryTenant() *TenantQuery {
+	return NewUserClient(_m.config).QueryTenant(_m)
+}
+
+// QueryCreator queries the "creator" edge of the User entity.
+func (_m *User) QueryCreator() *WorkspaceQuery {
+	return NewUserClient(_m.config).QueryCreator(_m)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -169,6 +231,9 @@ func (_m *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("email=")
 	builder.WriteString(_m.Email)
+	builder.WriteString(", ")
+	builder.WriteString("status_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StatusID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -44,6 +44,20 @@ func (_u *UserCredentialUpdate) SetNillablePasswordHash(v *string) *UserCredenti
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *UserCredentialUpdate) SetUserID(v uuid.UUID) *UserCredentialUpdate {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *UserCredentialUpdate) SetNillableUserID(v *uuid.UUID) *UserCredentialUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserCredentialUpdate) SetUpdatedAt(v time.Time) *UserCredentialUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -198,6 +212,20 @@ func (_u *UserCredentialUpdateOne) SetPasswordHash(v string) *UserCredentialUpda
 func (_u *UserCredentialUpdateOne) SetNillablePasswordHash(v *string) *UserCredentialUpdateOne {
 	if v != nil {
 		_u.SetPasswordHash(*v)
+	}
+	return _u
+}
+
+// SetUserID sets the "user_id" field.
+func (_u *UserCredentialUpdateOne) SetUserID(v uuid.UUID) *UserCredentialUpdateOne {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *UserCredentialUpdateOne) SetNillableUserID(v *uuid.UUID) *UserCredentialUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
 	}
 	return _u
 }

@@ -17,6 +17,7 @@ func (UserCredential) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id",uuid.UUID{}).Default(uuid.New),
 		field.String("password_hash").NotEmpty().Sensitive(),
+		field.UUID("user_id",uuid.UUID{}),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -24,6 +25,6 @@ func (UserCredential) Fields() []ent.Field {
 
 func (UserCredential) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("users",User.Type).Ref("credentials").Unique().Required(),
+		edge.From("users",User.Type).Field("user_id").Ref("credentials").Unique().Required(),
 	}
 }

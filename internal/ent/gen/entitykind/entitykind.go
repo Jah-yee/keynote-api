@@ -35,7 +35,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "statedefinitions" package.
 	StateDefinitionsInverseTable = "state_definitions"
 	// StateDefinitionsColumn is the table column denoting the state_definitions relation/edge.
-	StateDefinitionsColumn = "entity_kind_state_definitions"
+	StateDefinitionsColumn = "entity_id"
 )
 
 // Columns holds all SQL columns for entitykind fields.

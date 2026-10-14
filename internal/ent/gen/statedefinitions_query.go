@@ -14,8 +14,11 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/caneel7/keynote-api/internal/ent/gen/entitykind"
 	"github.com/caneel7/keynote-api/internal/ent/gen/predicate"
+	"github.com/caneel7/keynote-api/internal/ent/gen/project"
 	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
 	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
+	"github.com/caneel7/keynote-api/internal/ent/gen/user"
+	"github.com/caneel7/keynote-api/internal/ent/gen/workspace"
 	"github.com/google/uuid"
 )
 
@@ -28,7 +31,9 @@ type StateDefinitionsQuery struct {
 	predicates     []predicate.StateDefinitions
 	withEntityKind *EntityKindQuery
 	withTenants    *TenantQuery
-	withFKs        bool
+	withUser       *UserQuery
+	withWorkspace  *WorkspaceQuery
+	withProjects   *ProjectQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -102,6 +107,72 @@ func (_q *StateDefinitionsQuery) QueryTenants() *TenantQuery {
 			sqlgraph.From(statedefinitions.Table, statedefinitions.FieldID, selector),
 			sqlgraph.To(tenant.Table, tenant.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, statedefinitions.TenantsTable, statedefinitions.TenantsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (_q *StateDefinitionsQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statedefinitions.Table, statedefinitions.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, statedefinitions.UserTable, statedefinitions.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkspace chains the current query on the "workspace" edge.
+func (_q *StateDefinitionsQuery) QueryWorkspace() *WorkspaceQuery {
+	query := (&WorkspaceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statedefinitions.Table, statedefinitions.FieldID, selector),
+			sqlgraph.To(workspace.Table, workspace.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, statedefinitions.WorkspaceTable, statedefinitions.WorkspaceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProjects chains the current query on the "projects" edge.
+func (_q *StateDefinitionsQuery) QueryProjects() *ProjectQuery {
+	query := (&ProjectClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(statedefinitions.Table, statedefinitions.FieldID, selector),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, statedefinitions.ProjectsTable, statedefinitions.ProjectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -303,6 +374,9 @@ func (_q *StateDefinitionsQuery) Clone() *StateDefinitionsQuery {
 		predicates:     append([]predicate.StateDefinitions{}, _q.predicates...),
 		withEntityKind: _q.withEntityKind.Clone(),
 		withTenants:    _q.withTenants.Clone(),
+		withUser:       _q.withUser.Clone(),
+		withWorkspace:  _q.withWorkspace.Clone(),
+		withProjects:   _q.withProjects.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -331,18 +405,51 @@ func (_q *StateDefinitionsQuery) WithTenants(opts ...func(*TenantQuery)) *StateD
 	return _q
 }
 
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StateDefinitionsQuery) WithUser(opts ...func(*UserQuery)) *StateDefinitionsQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUser = query
+	return _q
+}
+
+// WithWorkspace tells the query-builder to eager-load the nodes that are connected to
+// the "workspace" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StateDefinitionsQuery) WithWorkspace(opts ...func(*WorkspaceQuery)) *StateDefinitionsQuery {
+	query := (&WorkspaceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withWorkspace = query
+	return _q
+}
+
+// WithProjects tells the query-builder to eager-load the nodes that are connected to
+// the "projects" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *StateDefinitionsQuery) WithProjects(opts ...func(*ProjectQuery)) *StateDefinitionsQuery {
+	query := (&ProjectClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withProjects = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		Key string `json:"key,omitempty"`
+//		EntityID uuid.UUID `json:"entity_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.StateDefinitions.Query().
-//		GroupBy(statedefinitions.FieldKey).
+//		GroupBy(statedefinitions.FieldEntityID).
 //		Aggregate(gen.Count()).
 //		Scan(ctx, &v)
 func (_q *StateDefinitionsQuery) GroupBy(field string, fields ...string) *StateDefinitionsGroupBy {
@@ -360,11 +467,11 @@ func (_q *StateDefinitionsQuery) GroupBy(field string, fields ...string) *StateD
 // Example:
 //
 //	var v []struct {
-//		Key string `json:"key,omitempty"`
+//		EntityID uuid.UUID `json:"entity_id,omitempty"`
 //	}
 //
 //	client.StateDefinitions.Query().
-//		Select(statedefinitions.FieldKey).
+//		Select(statedefinitions.FieldEntityID).
 //		Scan(ctx, &v)
 func (_q *StateDefinitionsQuery) Select(fields ...string) *StateDefinitionsSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -408,19 +515,15 @@ func (_q *StateDefinitionsQuery) prepareQuery(ctx context.Context) error {
 func (_q *StateDefinitionsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*StateDefinitions, error) {
 	var (
 		nodes       = []*StateDefinitions{}
-		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [5]bool{
 			_q.withEntityKind != nil,
 			_q.withTenants != nil,
+			_q.withUser != nil,
+			_q.withWorkspace != nil,
+			_q.withProjects != nil,
 		}
 	)
-	if _q.withEntityKind != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, statedefinitions.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*StateDefinitions).scanValues(nil, columns)
 	}
@@ -452,6 +555,27 @@ func (_q *StateDefinitionsQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 			return nil, err
 		}
 	}
+	if query := _q.withUser; query != nil {
+		if err := _q.loadUser(ctx, query, nodes,
+			func(n *StateDefinitions) { n.Edges.User = []*User{} },
+			func(n *StateDefinitions, e *User) { n.Edges.User = append(n.Edges.User, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withWorkspace; query != nil {
+		if err := _q.loadWorkspace(ctx, query, nodes,
+			func(n *StateDefinitions) { n.Edges.Workspace = []*Workspace{} },
+			func(n *StateDefinitions, e *Workspace) { n.Edges.Workspace = append(n.Edges.Workspace, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withProjects; query != nil {
+		if err := _q.loadProjects(ctx, query, nodes,
+			func(n *StateDefinitions) { n.Edges.Projects = []*Project{} },
+			func(n *StateDefinitions, e *Project) { n.Edges.Projects = append(n.Edges.Projects, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -459,10 +583,7 @@ func (_q *StateDefinitionsQuery) loadEntityKind(ctx context.Context, query *Enti
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*StateDefinitions)
 	for i := range nodes {
-		if nodes[i].entity_kind_state_definitions == nil {
-			continue
-		}
-		fk := *nodes[i].entity_kind_state_definitions
+		fk := nodes[i].EntityID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -479,7 +600,7 @@ func (_q *StateDefinitionsQuery) loadEntityKind(ctx context.Context, query *Enti
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "entity_kind_state_definitions" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "entity_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -497,7 +618,9 @@ func (_q *StateDefinitionsQuery) loadTenants(ctx context.Context, query *TenantQ
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(tenant.FieldStatusID)
+	}
 	query.Where(predicate.Tenant(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(statedefinitions.TenantsColumn), fks...))
 	}))
@@ -506,13 +629,100 @@ func (_q *StateDefinitionsQuery) loadTenants(ctx context.Context, query *TenantQ
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.state_definitions_tenants
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "state_definitions_tenants" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.StatusID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "state_definitions_tenants" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "status_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *StateDefinitionsQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*StateDefinitions, init func(*StateDefinitions), assign func(*StateDefinitions, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*StateDefinitions)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(user.FieldStatusID)
+	}
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(statedefinitions.UserColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.StatusID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "status_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *StateDefinitionsQuery) loadWorkspace(ctx context.Context, query *WorkspaceQuery, nodes []*StateDefinitions, init func(*StateDefinitions), assign func(*StateDefinitions, *Workspace)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*StateDefinitions)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(workspace.FieldStatusID)
+	}
+	query.Where(predicate.Workspace(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(statedefinitions.WorkspaceColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.StatusID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "status_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *StateDefinitionsQuery) loadProjects(ctx context.Context, query *ProjectQuery, nodes []*StateDefinitions, init func(*StateDefinitions), assign func(*StateDefinitions, *Project)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*StateDefinitions)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(project.FieldStatusID)
+	}
+	query.Where(predicate.Project(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(statedefinitions.ProjectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.StatusID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "status_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -543,6 +753,9 @@ func (_q *StateDefinitionsQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != statedefinitions.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withEntityKind != nil {
+			_spec.Node.AddColumnOnce(statedefinitions.FieldEntityID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

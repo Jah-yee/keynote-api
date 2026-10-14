@@ -19,7 +19,7 @@ func Mount(
 	db *gen.Client,
 	signer *tokens.Signer,
 ) {
-	register.RegisterUserRoute(public, register.NewService(db))
+	register.RegisterUserRoute(public, register.NewService(db,signer))
 	jwks.JwksRoute(public, signer)
 	login.LoginRoute(public, login.NewService(db, signer))
 	refresh.RefreshTokenRoute(public,refresh.NewService(db,signer))

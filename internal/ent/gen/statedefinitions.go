@@ -19,6 +19,8 @@ type StateDefinitions struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// EntityID holds the value of the "entity_id" field.
+	EntityID uuid.UUID `json:"entity_id,omitempty"`
 	// Key holds the value of the "key" field.
 	Key string `json:"key,omitempty"`
 	// Name holds the value of the "name" field.
@@ -31,9 +33,8 @@ type StateDefinitions struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the StateDefinitionsQuery when eager-loading is set.
-	Edges                         StateDefinitionsEdges `json:"edges"`
-	entity_kind_state_definitions *uuid.UUID
-	selectValues                  sql.SelectValues
+	Edges        StateDefinitionsEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // StateDefinitionsEdges holds the relations/edges for other nodes in the graph.
@@ -42,9 +43,15 @@ type StateDefinitionsEdges struct {
 	EntityKind *EntityKind `json:"entity_kind,omitempty"`
 	// Tenants holds the value of the tenants edge.
 	Tenants []*Tenant `json:"tenants,omitempty"`
+	// User holds the value of the user edge.
+	User []*User `json:"user,omitempty"`
+	// Workspace holds the value of the workspace edge.
+	Workspace []*Workspace `json:"workspace,omitempty"`
+	// Projects holds the value of the projects edge.
+	Projects []*Project `json:"projects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // EntityKindOrErr returns the EntityKind value or an error if the edge
@@ -67,6 +74,33 @@ func (e StateDefinitionsEdges) TenantsOrErr() ([]*Tenant, error) {
 	return nil, &NotLoadedError{edge: "tenants"}
 }
 
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading.
+func (e StateDefinitionsEdges) UserOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// WorkspaceOrErr returns the Workspace value or an error if the edge
+// was not loaded in eager-loading.
+func (e StateDefinitionsEdges) WorkspaceOrErr() ([]*Workspace, error) {
+	if e.loadedTypes[3] {
+		return e.Workspace, nil
+	}
+	return nil, &NotLoadedError{edge: "workspace"}
+}
+
+// ProjectsOrErr returns the Projects value or an error if the edge
+// was not loaded in eager-loading.
+func (e StateDefinitionsEdges) ProjectsOrErr() ([]*Project, error) {
+	if e.loadedTypes[4] {
+		return e.Projects, nil
+	}
+	return nil, &NotLoadedError{edge: "projects"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*StateDefinitions) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -76,10 +110,8 @@ func (*StateDefinitions) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case statedefinitions.FieldCreatedAt, statedefinitions.FieldUpdatedAt, statedefinitions.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case statedefinitions.FieldID:
+		case statedefinitions.FieldID, statedefinitions.FieldEntityID:
 			values[i] = new(uuid.UUID)
-		case statedefinitions.ForeignKeys[0]: // entity_kind_state_definitions
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -100,6 +132,12 @@ func (_m *StateDefinitions) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
+			}
+		case statedefinitions.FieldEntityID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field entity_id", values[i])
+			} else if value != nil {
+				_m.EntityID = *value
 			}
 		case statedefinitions.FieldKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -132,13 +170,6 @@ func (_m *StateDefinitions) assignValues(columns []string, values []any) error {
 				_m.DeletedAt = new(time.Time)
 				*_m.DeletedAt = value.Time
 			}
-		case statedefinitions.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field entity_kind_state_definitions", values[i])
-			} else if value.Valid {
-				_m.entity_kind_state_definitions = new(uuid.UUID)
-				*_m.entity_kind_state_definitions = *value.S.(*uuid.UUID)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -160,6 +191,21 @@ func (_m *StateDefinitions) QueryEntityKind() *EntityKindQuery {
 // QueryTenants queries the "tenants" edge of the StateDefinitions entity.
 func (_m *StateDefinitions) QueryTenants() *TenantQuery {
 	return NewStateDefinitionsClient(_m.config).QueryTenants(_m)
+}
+
+// QueryUser queries the "user" edge of the StateDefinitions entity.
+func (_m *StateDefinitions) QueryUser() *UserQuery {
+	return NewStateDefinitionsClient(_m.config).QueryUser(_m)
+}
+
+// QueryWorkspace queries the "workspace" edge of the StateDefinitions entity.
+func (_m *StateDefinitions) QueryWorkspace() *WorkspaceQuery {
+	return NewStateDefinitionsClient(_m.config).QueryWorkspace(_m)
+}
+
+// QueryProjects queries the "projects" edge of the StateDefinitions entity.
+func (_m *StateDefinitions) QueryProjects() *ProjectQuery {
+	return NewStateDefinitionsClient(_m.config).QueryProjects(_m)
 }
 
 // Update returns a builder for updating this StateDefinitions.
@@ -185,6 +231,9 @@ func (_m *StateDefinitions) String() string {
 	var builder strings.Builder
 	builder.WriteString("StateDefinitions(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("entity_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EntityID))
+	builder.WriteString(", ")
 	builder.WriteString("key=")
 	builder.WriteString(_m.Key)
 	builder.WriteString(", ")

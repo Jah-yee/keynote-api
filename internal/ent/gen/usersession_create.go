@@ -22,6 +22,12 @@ type UserSessionCreate struct {
 	hooks    []Hook
 }
 
+// SetUserID sets the "user_id" field.
+func (_c *UserSessionCreate) SetUserID(v uuid.UUID) *UserSessionCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
 // SetRefreshTokenHash sets the "refresh_token_hash" field.
 func (_c *UserSessionCreate) SetRefreshTokenHash(v string) *UserSessionCreate {
 	_c.mutation.SetRefreshTokenHash(v)
@@ -118,12 +124,6 @@ func (_c *UserSessionCreate) SetNillableID(v *uuid.UUID) *UserSessionCreate {
 	return _c
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_c *UserSessionCreate) SetUserID(id uuid.UUID) *UserSessionCreate {
-	_c.mutation.SetUserID(id)
-	return _c
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (_c *UserSessionCreate) SetUser(v *User) *UserSessionCreate {
 	return _c.SetUserID(v.ID)
@@ -180,6 +180,9 @@ func (_c *UserSessionCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *UserSessionCreate) check() error {
+	if _, ok := _c.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "UserSession.user_id"`)}
+	}
 	if _, ok := _c.mutation.RefreshTokenHash(); !ok {
 		return &ValidationError{Name: "refresh_token_hash", err: errors.New(`gen: missing required field "UserSession.refresh_token_hash"`)}
 	}
@@ -282,7 +285,7 @@ func (_c *UserSessionCreate) createSpec() (*UserSession, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_sessions = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

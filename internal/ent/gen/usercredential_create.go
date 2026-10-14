@@ -28,6 +28,12 @@ func (_c *UserCredentialCreate) SetPasswordHash(v string) *UserCredentialCreate 
 	return _c
 }
 
+// SetUserID sets the "user_id" field.
+func (_c *UserCredentialCreate) SetUserID(v uuid.UUID) *UserCredentialCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *UserCredentialCreate) SetCreatedAt(v time.Time) *UserCredentialCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -140,6 +146,9 @@ func (_c *UserCredentialCreate) check() error {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`gen: validator failed for field "UserCredential.password_hash": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "UserCredential.user_id"`)}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "UserCredential.created_at"`)}
 	}
@@ -210,7 +219,7 @@ func (_c *UserCredentialCreate) createSpec() (*UserCredential, *sqlgraph.CreateS
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_credentials = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

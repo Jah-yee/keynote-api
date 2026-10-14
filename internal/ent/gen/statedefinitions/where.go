@@ -56,6 +56,11 @@ func IDLTE(id uuid.UUID) predicate.StateDefinitions {
 	return predicate.StateDefinitions(sql.FieldLTE(FieldID, id))
 }
 
+// EntityID applies equality check predicate on the "entity_id" field. It's identical to EntityIDEQ.
+func EntityID(v uuid.UUID) predicate.StateDefinitions {
+	return predicate.StateDefinitions(sql.FieldEQ(FieldEntityID, v))
+}
+
 // Key applies equality check predicate on the "key" field. It's identical to KeyEQ.
 func Key(v string) predicate.StateDefinitions {
 	return predicate.StateDefinitions(sql.FieldEQ(FieldKey, v))
@@ -79,6 +84,26 @@ func UpdatedAt(v time.Time) predicate.StateDefinitions {
 // DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
 func DeletedAt(v time.Time) predicate.StateDefinitions {
 	return predicate.StateDefinitions(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// EntityIDEQ applies the EQ predicate on the "entity_id" field.
+func EntityIDEQ(v uuid.UUID) predicate.StateDefinitions {
+	return predicate.StateDefinitions(sql.FieldEQ(FieldEntityID, v))
+}
+
+// EntityIDNEQ applies the NEQ predicate on the "entity_id" field.
+func EntityIDNEQ(v uuid.UUID) predicate.StateDefinitions {
+	return predicate.StateDefinitions(sql.FieldNEQ(FieldEntityID, v))
+}
+
+// EntityIDIn applies the In predicate on the "entity_id" field.
+func EntityIDIn(vs ...uuid.UUID) predicate.StateDefinitions {
+	return predicate.StateDefinitions(sql.FieldIn(FieldEntityID, vs...))
+}
+
+// EntityIDNotIn applies the NotIn predicate on the "entity_id" field.
+func EntityIDNotIn(vs ...uuid.UUID) predicate.StateDefinitions {
+	return predicate.StateDefinitions(sql.FieldNotIn(FieldEntityID, vs...))
 }
 
 // KeyEQ applies the EQ predicate on the "key" field.
@@ -379,6 +404,75 @@ func HasTenants() predicate.StateDefinitions {
 func HasTenantsWith(preds ...predicate.Tenant) predicate.StateDefinitions {
 	return predicate.StateDefinitions(func(s *sql.Selector) {
 		step := newTenantsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.StateDefinitions {
+	return predicate.StateDefinitions(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.StateDefinitions {
+	return predicate.StateDefinitions(func(s *sql.Selector) {
+		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWorkspace applies the HasEdge predicate on the "workspace" edge.
+func HasWorkspace() predicate.StateDefinitions {
+	return predicate.StateDefinitions(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, WorkspaceTable, WorkspaceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkspaceWith applies the HasEdge predicate on the "workspace" edge with a given conditions (other predicates).
+func HasWorkspaceWith(preds ...predicate.Workspace) predicate.StateDefinitions {
+	return predicate.StateDefinitions(func(s *sql.Selector) {
+		step := newWorkspaceStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProjects applies the HasEdge predicate on the "projects" edge.
+func HasProjects() predicate.StateDefinitions {
+	return predicate.StateDefinitions(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProjectsTable, ProjectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProjectsWith applies the HasEdge predicate on the "projects" edge with a given conditions (other predicates).
+func HasProjectsWith(preds ...predicate.Project) predicate.StateDefinitions {
+	return predicate.StateDefinitions(func(s *sql.Selector) {
+		step := newProjectsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

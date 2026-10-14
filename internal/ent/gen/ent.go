@@ -13,11 +13,13 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/caneel7/keynote-api/internal/ent/gen/entitykind"
+	"github.com/caneel7/keynote-api/internal/ent/gen/project"
 	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
 	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
+	"github.com/caneel7/keynote-api/internal/ent/gen/workspace"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -79,11 +81,13 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			entitykind.Table:       entitykind.ValidColumn,
+			project.Table:          project.ValidColumn,
 			statedefinitions.Table: statedefinitions.ValidColumn,
 			tenant.Table:           tenant.ValidColumn,
 			user.Table:             user.ValidColumn,
 			usercredential.Table:   usercredential.ValidColumn,
 			usersession.Table:      usersession.ValidColumn,
+			workspace.Table:        workspace.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

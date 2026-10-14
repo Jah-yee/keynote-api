@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// EntityKind is the client for interacting with the EntityKind builders.
 	EntityKind *EntityKindClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
 	// StateDefinitions is the client for interacting with the StateDefinitions builders.
 	StateDefinitions *StateDefinitionsClient
 	// Tenant is the client for interacting with the Tenant builders.
@@ -24,6 +26,8 @@ type Tx struct {
 	UserCredential *UserCredentialClient
 	// UserSession is the client for interacting with the UserSession builders.
 	UserSession *UserSessionClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
 
 	// lazily loaded.
 	client     *Client
@@ -156,11 +160,13 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.EntityKind = NewEntityKindClient(tx.config)
+	tx.Project = NewProjectClient(tx.config)
 	tx.StateDefinitions = NewStateDefinitionsClient(tx.config)
 	tx.Tenant = NewTenantClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserCredential = NewUserCredentialClient(tx.config)
 	tx.UserSession = NewUserSessionClient(tx.config)
+	tx.Workspace = NewWorkspaceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

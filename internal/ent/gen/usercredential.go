@@ -21,15 +21,16 @@ type UserCredential struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"-"`
+	// UserID holds the value of the "user_id" field.
+	UserID uuid.UUID `json:"user_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserCredentialQuery when eager-loading is set.
-	Edges            UserCredentialEdges `json:"edges"`
-	user_credentials *uuid.UUID
-	selectValues     sql.SelectValues
+	Edges        UserCredentialEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UserCredentialEdges holds the relations/edges for other nodes in the graph.
@@ -61,10 +62,8 @@ func (*UserCredential) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case usercredential.FieldCreatedAt, usercredential.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case usercredential.FieldID:
+		case usercredential.FieldID, usercredential.FieldUserID:
 			values[i] = new(uuid.UUID)
-		case usercredential.ForeignKeys[0]: // user_credentials
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -92,6 +91,12 @@ func (_m *UserCredential) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PasswordHash = value.String
 			}
+		case usercredential.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				_m.UserID = *value
+			}
 		case usercredential.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -103,13 +108,6 @@ func (_m *UserCredential) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
-			}
-		case usercredential.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_credentials", values[i])
-			} else if value.Valid {
-				_m.user_credentials = new(uuid.UUID)
-				*_m.user_credentials = *value.S.(*uuid.UUID)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -153,6 +151,9 @@ func (_m *UserCredential) String() string {
 	builder.WriteString("UserCredential(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("password_hash=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

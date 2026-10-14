@@ -19,6 +19,8 @@ type UserSession struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID uuid.UUID `json:"user_id,omitempty"`
 	// RefreshTokenHash holds the value of the "refresh_token_hash" field.
 	RefreshTokenHash string `json:"-"`
 	// UserAgent holds the value of the "user_agent" field.
@@ -35,9 +37,8 @@ type UserSession struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserSessionQuery when eager-loading is set.
-	Edges         UserSessionEdges `json:"edges"`
-	user_sessions *uuid.UUID
-	selectValues  sql.SelectValues
+	Edges        UserSessionEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UserSessionEdges holds the relations/edges for other nodes in the graph.
@@ -69,10 +70,8 @@ func (*UserSession) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case usersession.FieldExpiresAt, usersession.FieldLastUsedAt, usersession.FieldRevokedAt, usersession.FieldCreatedAt, usersession.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case usersession.FieldID:
+		case usersession.FieldID, usersession.FieldUserID:
 			values[i] = new(uuid.UUID)
-		case usersession.ForeignKeys[0]: // user_sessions
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -93,6 +92,12 @@ func (_m *UserSession) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
+			}
+		case usersession.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				_m.UserID = *value
 			}
 		case usersession.FieldRefreshTokenHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -138,13 +143,6 @@ func (_m *UserSession) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case usersession.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_sessions", values[i])
-			} else if value.Valid {
-				_m.user_sessions = new(uuid.UUID)
-				*_m.user_sessions = *value.S.(*uuid.UUID)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -186,6 +184,9 @@ func (_m *UserSession) String() string {
 	var builder strings.Builder
 	builder.WriteString("UserSession(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
+	builder.WriteString(", ")
 	builder.WriteString("refresh_token_hash=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("user_agent=")

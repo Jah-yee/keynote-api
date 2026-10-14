@@ -11,6 +11,7 @@ import (
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	appError "github.com/caneel7/keynote-api/internal/errors"
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -26,6 +27,13 @@ type LoginOutput struct {
 	AccessToken          string
 	RefreshToken         string
 	ExpireAT             time.Time
+	RefreshTokenExpireAt time.Duration
+}
+
+type SessionAndTokens struct {
+	Token string
+	RefreshToken string 
+	ExpireAt time.Time
 	RefreshTokenExpireAt time.Duration
 }
 
@@ -57,13 +65,32 @@ func (s *Service) Login(
 		return output, appError.InvalidCredentials()
 	}
 
+	out, err := CreateSessionAndTokens(ctx,user.ID,s.db,s.signer)
+
+	output.AccessToken = out.Token
+	output.RefreshToken = out.RefreshToken
+	output.ExpireAT = out.ExpireAt
+	output.RefreshTokenExpireAt = out.RefreshTokenExpireAt
+
+	return output, nil
+}
+
+func CreateSessionAndTokens(
+	ctx context.Context, 
+	userID uuid.UUID,
+	db *gen.Client, 
+	signer *tokens.Signer,
+) (SessionAndTokens,error) {
+
+	var output SessionAndTokens
+
 	refresh, refreshHash, refreshttl, err := tokens.NewRefreshToken()
 	if err != nil {
 		return output, appError.InvalidCredentials()
 	}
 
-	session, err := s.db.UserSession.Create().
-		SetUserID(user.ID).
+	session, err := db.UserSession.Create().
+		SetUserID(userID).
 		SetRefreshTokenHash(refreshHash).
 		SetExpiresAt(time.Now().Add(time.Duration(refreshttl))).
 		Save(ctx)
@@ -72,15 +99,15 @@ func (s *Service) Login(
 		return output, appError.InvalidCredentials()
 	}
 
-	token, exp, err := s.signer.Sign(user.ID, session.ID)
+	token, exp, err := signer.Sign(userID, session.ID)
 	if err != nil {
 		return output, fmt.Errorf("Login error : %v", err)
 	}
 
-	output.AccessToken = token
+	output.ExpireAt = exp
+	output.Token = token
 	output.RefreshToken = refresh
-	output.ExpireAT = exp
 	output.RefreshTokenExpireAt = refreshttl
 
-	return output, nil
+	return output,nil 
 }
