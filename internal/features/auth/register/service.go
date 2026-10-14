@@ -8,6 +8,7 @@ import (
 
 	argon "github.com/caneel7/keynote-api/internal/common/password"
 	"github.com/caneel7/keynote-api/internal/common/tokens"
+	"github.com/caneel7/keynote-api/internal/constants"
 	"github.com/caneel7/keynote-api/internal/ent/gen"
 	appError "github.com/caneel7/keynote-api/internal/errors"
 	"github.com/caneel7/keynote-api/internal/features/auth/login"
@@ -50,7 +51,11 @@ func (s *Service) Register(
 	}
 	defer tx.Rollback()
 
-	user, err := tx.User.Create().SetEmail(email).Save(ctx)
+	user, err := tx.User.Create().
+		SetEmail(email).
+		SetStateID(constants.StateIDs[constants.KindUsers][constants.StateActive]).
+		Save(ctx)
+		
 	if err != nil {
 		if gen.IsConstraintError(err) {
 			return output, appError.New(
