@@ -25,7 +25,6 @@ type UserSessionQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserSession
 	withUser   *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -300,12 +299,12 @@ func (_q *UserSessionQuery) WithUser(opts ...func(*UserQuery)) *UserSessionQuery
 // Example:
 //
 //	var v []struct {
-//		RefreshTokenHash string `json:"refresh_token_hash,omitempty"`
+//		UserID uuid.UUID `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UserSession.Query().
-//		GroupBy(usersession.FieldRefreshTokenHash).
+//		GroupBy(usersession.FieldUserID).
 //		Aggregate(gen.Count()).
 //		Scan(ctx, &v)
 func (_q *UserSessionQuery) GroupBy(field string, fields ...string) *UserSessionGroupBy {
@@ -323,11 +322,11 @@ func (_q *UserSessionQuery) GroupBy(field string, fields ...string) *UserSession
 // Example:
 //
 //	var v []struct {
-//		RefreshTokenHash string `json:"refresh_token_hash,omitempty"`
+//		UserID uuid.UUID `json:"user_id,omitempty"`
 //	}
 //
 //	client.UserSession.Query().
-//		Select(usersession.FieldRefreshTokenHash).
+//		Select(usersession.FieldUserID).
 //		Scan(ctx, &v)
 func (_q *UserSessionQuery) Select(fields ...string) *UserSessionSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -371,18 +370,11 @@ func (_q *UserSessionQuery) prepareQuery(ctx context.Context) error {
 func (_q *UserSessionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserSession, error) {
 	var (
 		nodes       = []*UserSession{}
-		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withUser != nil,
 		}
 	)
-	if _q.withUser != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, usersession.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UserSession).scanValues(nil, columns)
 	}
@@ -414,10 +406,7 @@ func (_q *UserSessionQuery) loadUser(ctx context.Context, query *UserQuery, node
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*UserSession)
 	for i := range nodes {
-		if nodes[i].user_sessions == nil {
-			continue
-		}
-		fk := *nodes[i].user_sessions
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -434,7 +423,7 @@ func (_q *UserSessionQuery) loadUser(ctx context.Context, query *UserQuery, node
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_sessions" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -467,6 +456,9 @@ func (_q *UserSessionQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != usersession.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withUser != nil {
+			_spec.Node.AddColumnOnce(usersession.FieldUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

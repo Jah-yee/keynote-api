@@ -6,6 +6,18 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// EntityKind is the predicate function for entitykind builders.
+type EntityKind func(*sql.Selector)
+
+// Project is the predicate function for project builders.
+type Project func(*sql.Selector)
+
+// StateDefinitions is the predicate function for statedefinitions builders.
+type StateDefinitions func(*sql.Selector)
+
+// Tenant is the predicate function for tenant builders.
+type Tenant func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
@@ -14,3 +26,6 @@ type UserCredential func(*sql.Selector)
 
 // UserSession is the predicate function for usersession builders.
 type UserSession func(*sql.Selector)
+
+// Workspace is the predicate function for workspace builders.
+type Workspace func(*sql.Selector)

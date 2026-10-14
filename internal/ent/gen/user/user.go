@@ -17,14 +17,24 @@ const (
 	FieldID = "id"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldStatusID holds the string denoting the status_id field in the database.
+	FieldStatusID = "status_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// EdgeCredentials holds the string denoting the credentials edge name in mutations.
 	EdgeCredentials = "credentials"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
+	// EdgeState holds the string denoting the state edge name in mutations.
+	EdgeState = "state"
+	// EdgeTenant holds the string denoting the tenant edge name in mutations.
+	EdgeTenant = "tenant"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// CredentialsTable is the table that holds the credentials relation/edge.
@@ -33,22 +43,45 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "usercredential" package.
 	CredentialsInverseTable = "user_credentials"
 	// CredentialsColumn is the table column denoting the credentials relation/edge.
-	CredentialsColumn = "user_credentials"
+	CredentialsColumn = "user_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "user_sessions"
 	// SessionsInverseTable is the table name for the UserSession entity.
 	// It exists in this package in order to avoid circular dependency with the "usersession" package.
 	SessionsInverseTable = "user_sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
-	SessionsColumn = "user_sessions"
+	SessionsColumn = "user_id"
+	// StateTable is the table that holds the state relation/edge.
+	StateTable = "users"
+	// StateInverseTable is the table name for the StateDefinitions entity.
+	// It exists in this package in order to avoid circular dependency with the "statedefinitions" package.
+	StateInverseTable = "state_definitions"
+	// StateColumn is the table column denoting the state relation/edge.
+	StateColumn = "status_id"
+	// TenantTable is the table that holds the tenant relation/edge.
+	TenantTable = "tenants"
+	// TenantInverseTable is the table name for the Tenant entity.
+	// It exists in this package in order to avoid circular dependency with the "tenant" package.
+	TenantInverseTable = "tenants"
+	// TenantColumn is the table column denoting the tenant relation/edge.
+	TenantColumn = "created_by"
+	// CreatorTable is the table that holds the creator relation/edge.
+	CreatorTable = "workspaces"
+	// CreatorInverseTable is the table name for the Workspace entity.
+	// It exists in this package in order to avoid circular dependency with the "workspace" package.
+	CreatorInverseTable = "workspaces"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "created_by"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldEmail,
+	FieldStatusID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldDeletedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -87,6 +120,11 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
 }
 
+// ByStatusID orders the results by the status_id field.
+func ByStatusID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatusID, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -95,6 +133,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // ByCredentialsField orders the results by credentials field.
@@ -117,6 +160,34 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByStateField orders the results by state field.
+func ByStateField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStateStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTenantField orders the results by tenant field.
+func ByTenantField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTenantStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCreatorCount orders the results by creator count.
+func ByCreatorCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatorStep(), opts...)
+	}
+}
+
+// ByCreator orders the results by creator terms.
+func ByCreator(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatorStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCredentialsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -129,5 +200,26 @@ func newSessionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
+	)
+}
+func newStateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, StateTable, StateColumn),
+	)
+}
+func newTenantStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TenantInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, TenantTable, TenantColumn),
+	)
+}
+func newCreatorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatorTable, CreatorColumn),
 	)
 }

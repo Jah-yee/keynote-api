@@ -56,6 +56,11 @@ func IDLTE(id uuid.UUID) predicate.UserSession {
 	return predicate.UserSession(sql.FieldLTE(FieldID, id))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v uuid.UUID) predicate.UserSession {
+	return predicate.UserSession(sql.FieldEQ(FieldUserID, v))
+}
+
 // RefreshTokenHash applies equality check predicate on the "refresh_token_hash" field. It's identical to RefreshTokenHashEQ.
 func RefreshTokenHash(v string) predicate.UserSession {
 	return predicate.UserSession(sql.FieldEQ(FieldRefreshTokenHash, v))
@@ -89,6 +94,26 @@ func CreatedAt(v time.Time) predicate.UserSession {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.UserSession {
 	return predicate.UserSession(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v uuid.UUID) predicate.UserSession {
+	return predicate.UserSession(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v uuid.UUID) predicate.UserSession {
+	return predicate.UserSession(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...uuid.UUID) predicate.UserSession {
+	return predicate.UserSession(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...uuid.UUID) predicate.UserSession {
+	return predicate.UserSession(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // RefreshTokenHashEQ applies the EQ predicate on the "refresh_token_hash" field.

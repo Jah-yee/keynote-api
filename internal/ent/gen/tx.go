@@ -12,12 +12,22 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// EntityKind is the client for interacting with the EntityKind builders.
+	EntityKind *EntityKindClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
+	// StateDefinitions is the client for interacting with the StateDefinitions builders.
+	StateDefinitions *StateDefinitionsClient
+	// Tenant is the client for interacting with the Tenant builders.
+	Tenant *TenantClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserCredential is the client for interacting with the UserCredential builders.
 	UserCredential *UserCredentialClient
 	// UserSession is the client for interacting with the UserSession builders.
 	UserSession *UserSessionClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
 
 	// lazily loaded.
 	client     *Client
@@ -149,9 +159,14 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.EntityKind = NewEntityKindClient(tx.config)
+	tx.Project = NewProjectClient(tx.config)
+	tx.StateDefinitions = NewStateDefinitionsClient(tx.config)
+	tx.Tenant = NewTenantClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserCredential = NewUserCredentialClient(tx.config)
 	tx.UserSession = NewUserSessionClient(tx.config)
+	tx.Workspace = NewWorkspaceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -161,7 +176,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: User.QueryXXX(), the query will be executed
+// applies a query, for example: EntityKind.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

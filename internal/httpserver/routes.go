@@ -7,6 +7,7 @@ import (
 	"github.com/caneel7/keynote-api/internal/common/tokens"
 	"github.com/caneel7/keynote-api/internal/ent/gen"
 	"github.com/caneel7/keynote-api/internal/features/auth"
+	"github.com/caneel7/keynote-api/internal/features/tenant"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
@@ -32,7 +33,15 @@ func routes (db *gen.Client,signer *tokens.Signer) http.Handler {
 
 	healthHandler(api)
 
+	/*
+	* auth api mounted : ["/login","/register","/me","/refresh","/.well-known/jwks.json"]
+	*/
 	auth.Mount(api,protectedAPI,db,signer)
+
+	/*
+	* tenat api mounted : ["/tenant"]
+	*/
+	tenant.Mount(protectedAPI,db)
 
 	return router;
 }

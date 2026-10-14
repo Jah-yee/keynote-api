@@ -30,6 +30,20 @@ func (_u *UserSessionUpdate) Where(ps ...predicate.UserSession) *UserSessionUpda
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *UserSessionUpdate) SetUserID(v uuid.UUID) *UserSessionUpdate {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *UserSessionUpdate) SetNillableUserID(v *uuid.UUID) *UserSessionUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
 // SetRefreshTokenHash sets the "refresh_token_hash" field.
 func (_u *UserSessionUpdate) SetRefreshTokenHash(v string) *UserSessionUpdate {
 	_u.mutation.SetRefreshTokenHash(v)
@@ -121,12 +135,6 @@ func (_u *UserSessionUpdate) ClearRevokedAt() *UserSessionUpdate {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserSessionUpdate) SetUpdatedAt(v time.Time) *UserSessionUpdate {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_u *UserSessionUpdate) SetUserID(id uuid.UUID) *UserSessionUpdate {
-	_u.mutation.SetUserID(id)
 	return _u
 }
 
@@ -288,6 +296,20 @@ type UserSessionUpdateOne struct {
 	mutation *UserSessionMutation
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *UserSessionUpdateOne) SetUserID(v uuid.UUID) *UserSessionUpdateOne {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *UserSessionUpdateOne) SetNillableUserID(v *uuid.UUID) *UserSessionUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
 // SetRefreshTokenHash sets the "refresh_token_hash" field.
 func (_u *UserSessionUpdateOne) SetRefreshTokenHash(v string) *UserSessionUpdateOne {
 	_u.mutation.SetRefreshTokenHash(v)
@@ -379,12 +401,6 @@ func (_u *UserSessionUpdateOne) ClearRevokedAt() *UserSessionUpdateOne {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserSessionUpdateOne) SetUpdatedAt(v time.Time) *UserSessionUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_u *UserSessionUpdateOne) SetUserID(id uuid.UUID) *UserSessionUpdateOne {
-	_u.mutation.SetUserID(id)
 	return _u
 }
 

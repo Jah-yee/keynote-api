@@ -12,9 +12,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/caneel7/keynote-api/internal/ent/gen/predicate"
+	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
+	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
+	"github.com/caneel7/keynote-api/internal/ent/gen/workspace"
 	"github.com/google/uuid"
 )
 
@@ -45,9 +48,43 @@ func (_u *UserUpdate) SetNillableEmail(v *string) *UserUpdate {
 	return _u
 }
 
+// SetStatusID sets the "status_id" field.
+func (_u *UserUpdate) SetStatusID(v uuid.UUID) *UserUpdate {
+	_u.mutation.SetStatusID(v)
+	return _u
+}
+
+// SetNillableStatusID sets the "status_id" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableStatusID(v *uuid.UUID) *UserUpdate {
+	if v != nil {
+		_u.SetStatusID(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserUpdate) SetUpdatedAt(v time.Time) *UserUpdate {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *UserUpdate) SetDeletedAt(v time.Time) *UserUpdate {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDeletedAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *UserUpdate) ClearDeletedAt() *UserUpdate {
+	_u.mutation.ClearDeletedAt()
 	return _u
 }
 
@@ -85,6 +122,51 @@ func (_u *UserUpdate) AddSessions(v ...*UserSession) *UserUpdate {
 	return _u.AddSessionIDs(ids...)
 }
 
+// SetStateID sets the "state" edge to the StateDefinitions entity by ID.
+func (_u *UserUpdate) SetStateID(id uuid.UUID) *UserUpdate {
+	_u.mutation.SetStateID(id)
+	return _u
+}
+
+// SetState sets the "state" edge to the StateDefinitions entity.
+func (_u *UserUpdate) SetState(v *StateDefinitions) *UserUpdate {
+	return _u.SetStateID(v.ID)
+}
+
+// SetTenantID sets the "tenant" edge to the Tenant entity by ID.
+func (_u *UserUpdate) SetTenantID(id uuid.UUID) *UserUpdate {
+	_u.mutation.SetTenantID(id)
+	return _u
+}
+
+// SetNillableTenantID sets the "tenant" edge to the Tenant entity by ID if the given value is not nil.
+func (_u *UserUpdate) SetNillableTenantID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		_u = _u.SetTenantID(*id)
+	}
+	return _u
+}
+
+// SetTenant sets the "tenant" edge to the Tenant entity.
+func (_u *UserUpdate) SetTenant(v *Tenant) *UserUpdate {
+	return _u.SetTenantID(v.ID)
+}
+
+// AddCreatorIDs adds the "creator" edge to the Workspace entity by IDs.
+func (_u *UserUpdate) AddCreatorIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCreatorIDs(ids...)
+	return _u
+}
+
+// AddCreator adds the "creator" edges to the Workspace entity.
+func (_u *UserUpdate) AddCreator(v ...*Workspace) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatorIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -115,6 +197,39 @@ func (_u *UserUpdate) RemoveSessions(v ...*UserSession) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSessionIDs(ids...)
+}
+
+// ClearState clears the "state" edge to the StateDefinitions entity.
+func (_u *UserUpdate) ClearState() *UserUpdate {
+	_u.mutation.ClearState()
+	return _u
+}
+
+// ClearTenant clears the "tenant" edge to the Tenant entity.
+func (_u *UserUpdate) ClearTenant() *UserUpdate {
+	_u.mutation.ClearTenant()
+	return _u
+}
+
+// ClearCreator clears all "creator" edges to the Workspace entity.
+func (_u *UserUpdate) ClearCreator() *UserUpdate {
+	_u.mutation.ClearCreator()
+	return _u
+}
+
+// RemoveCreatorIDs removes the "creator" edge to Workspace entities by IDs.
+func (_u *UserUpdate) RemoveCreatorIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCreatorIDs(ids...)
+	return _u
+}
+
+// RemoveCreator removes "creator" edges to Workspace entities.
+func (_u *UserUpdate) RemoveCreator(v ...*Workspace) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatorIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -160,6 +275,9 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`gen: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if _u.mutation.StateCleared() && len(_u.mutation.StateIDs()) > 0 {
+		return errors.New(`gen: clearing a required unique edge "User.state"`)
+	}
 	return nil
 }
 
@@ -180,6 +298,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(user.FieldDeletedAt, field.TypeTime)
 	}
 	if _u.mutation.CredentialsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -255,6 +379,109 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.StateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.StateTable,
+			Columns: []string{user.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statedefinitions.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.StateTable,
+			Columns: []string{user.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statedefinitions.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TenantCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TenantTable,
+			Columns: []string{user.TenantColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TenantIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TenantTable,
+			Columns: []string{user.TenantColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatorIDs(); len(nodes) > 0 && !_u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -289,9 +516,43 @@ func (_u *UserUpdateOne) SetNillableEmail(v *string) *UserUpdateOne {
 	return _u
 }
 
+// SetStatusID sets the "status_id" field.
+func (_u *UserUpdateOne) SetStatusID(v uuid.UUID) *UserUpdateOne {
+	_u.mutation.SetStatusID(v)
+	return _u
+}
+
+// SetNillableStatusID sets the "status_id" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableStatusID(v *uuid.UUID) *UserUpdateOne {
+	if v != nil {
+		_u.SetStatusID(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *UserUpdateOne) SetUpdatedAt(v time.Time) *UserUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *UserUpdateOne) SetDeletedAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDeletedAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *UserUpdateOne) ClearDeletedAt() *UserUpdateOne {
+	_u.mutation.ClearDeletedAt()
 	return _u
 }
 
@@ -329,6 +590,51 @@ func (_u *UserUpdateOne) AddSessions(v ...*UserSession) *UserUpdateOne {
 	return _u.AddSessionIDs(ids...)
 }
 
+// SetStateID sets the "state" edge to the StateDefinitions entity by ID.
+func (_u *UserUpdateOne) SetStateID(id uuid.UUID) *UserUpdateOne {
+	_u.mutation.SetStateID(id)
+	return _u
+}
+
+// SetState sets the "state" edge to the StateDefinitions entity.
+func (_u *UserUpdateOne) SetState(v *StateDefinitions) *UserUpdateOne {
+	return _u.SetStateID(v.ID)
+}
+
+// SetTenantID sets the "tenant" edge to the Tenant entity by ID.
+func (_u *UserUpdateOne) SetTenantID(id uuid.UUID) *UserUpdateOne {
+	_u.mutation.SetTenantID(id)
+	return _u
+}
+
+// SetNillableTenantID sets the "tenant" edge to the Tenant entity by ID if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableTenantID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		_u = _u.SetTenantID(*id)
+	}
+	return _u
+}
+
+// SetTenant sets the "tenant" edge to the Tenant entity.
+func (_u *UserUpdateOne) SetTenant(v *Tenant) *UserUpdateOne {
+	return _u.SetTenantID(v.ID)
+}
+
+// AddCreatorIDs adds the "creator" edge to the Workspace entity by IDs.
+func (_u *UserUpdateOne) AddCreatorIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCreatorIDs(ids...)
+	return _u
+}
+
+// AddCreator adds the "creator" edges to the Workspace entity.
+func (_u *UserUpdateOne) AddCreator(v ...*Workspace) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatorIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -359,6 +665,39 @@ func (_u *UserUpdateOne) RemoveSessions(v ...*UserSession) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSessionIDs(ids...)
+}
+
+// ClearState clears the "state" edge to the StateDefinitions entity.
+func (_u *UserUpdateOne) ClearState() *UserUpdateOne {
+	_u.mutation.ClearState()
+	return _u
+}
+
+// ClearTenant clears the "tenant" edge to the Tenant entity.
+func (_u *UserUpdateOne) ClearTenant() *UserUpdateOne {
+	_u.mutation.ClearTenant()
+	return _u
+}
+
+// ClearCreator clears all "creator" edges to the Workspace entity.
+func (_u *UserUpdateOne) ClearCreator() *UserUpdateOne {
+	_u.mutation.ClearCreator()
+	return _u
+}
+
+// RemoveCreatorIDs removes the "creator" edge to Workspace entities by IDs.
+func (_u *UserUpdateOne) RemoveCreatorIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCreatorIDs(ids...)
+	return _u
+}
+
+// RemoveCreator removes "creator" edges to Workspace entities.
+func (_u *UserUpdateOne) RemoveCreator(v ...*Workspace) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatorIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -417,6 +756,9 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`gen: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if _u.mutation.StateCleared() && len(_u.mutation.StateIDs()) > 0 {
+		return errors.New(`gen: clearing a required unique edge "User.state"`)
+	}
 	return nil
 }
 
@@ -454,6 +796,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(user.FieldDeletedAt, field.TypeTime)
 	}
 	if _u.mutation.CredentialsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -522,6 +870,109 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usersession.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.StateTable,
+			Columns: []string{user.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statedefinitions.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.StateTable,
+			Columns: []string{user.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statedefinitions.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TenantCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TenantTable,
+			Columns: []string{user.TenantColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TenantIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TenantTable,
+			Columns: []string{user.TenantColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatorIDs(); len(nodes) > 0 && !_u.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

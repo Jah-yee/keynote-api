@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -43,6 +44,26 @@ func (_u *UserCredentialUpdate) SetNillablePasswordHash(v *string) *UserCredenti
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *UserCredentialUpdate) SetUserID(v uuid.UUID) *UserCredentialUpdate {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *UserCredentialUpdate) SetNillableUserID(v *uuid.UUID) *UserCredentialUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *UserCredentialUpdate) SetUpdatedAt(v time.Time) *UserCredentialUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetUsersID sets the "users" edge to the User entity by ID.
 func (_u *UserCredentialUpdate) SetUsersID(id uuid.UUID) *UserCredentialUpdate {
 	_u.mutation.SetUsersID(id)
@@ -67,6 +88,7 @@ func (_u *UserCredentialUpdate) ClearUsers() *UserCredentialUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *UserCredentialUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -89,6 +111,14 @@ func (_u *UserCredentialUpdate) Exec(ctx context.Context) error {
 func (_u *UserCredentialUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *UserCredentialUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := usercredential.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -119,6 +149,9 @@ func (_u *UserCredentialUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(usercredential.FieldPasswordHash, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(usercredential.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if _u.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -183,6 +216,26 @@ func (_u *UserCredentialUpdateOne) SetNillablePasswordHash(v *string) *UserCrede
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *UserCredentialUpdateOne) SetUserID(v uuid.UUID) *UserCredentialUpdateOne {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *UserCredentialUpdateOne) SetNillableUserID(v *uuid.UUID) *UserCredentialUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *UserCredentialUpdateOne) SetUpdatedAt(v time.Time) *UserCredentialUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetUsersID sets the "users" edge to the User entity by ID.
 func (_u *UserCredentialUpdateOne) SetUsersID(id uuid.UUID) *UserCredentialUpdateOne {
 	_u.mutation.SetUsersID(id)
@@ -220,6 +273,7 @@ func (_u *UserCredentialUpdateOne) Select(field string, fields ...string) *UserC
 
 // Save executes the query and returns the updated UserCredential entity.
 func (_u *UserCredentialUpdateOne) Save(ctx context.Context) (*UserCredential, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -242,6 +296,14 @@ func (_u *UserCredentialUpdateOne) Exec(ctx context.Context) error {
 func (_u *UserCredentialUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *UserCredentialUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := usercredential.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -289,6 +351,9 @@ func (_u *UserCredentialUpdateOne) sqlSave(ctx context.Context) (_node *UserCred
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(usercredential.FieldPasswordHash, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(usercredential.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if _u.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

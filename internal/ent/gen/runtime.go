@@ -5,9 +5,14 @@ package gen
 import (
 	"time"
 
+	"github.com/caneel7/keynote-api/internal/ent/gen/entitykind"
+	"github.com/caneel7/keynote-api/internal/ent/gen/project"
+	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
+	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
+	"github.com/caneel7/keynote-api/internal/ent/gen/workspace"
 	"github.com/caneel7/keynote-api/internal/ent/schema"
 	"github.com/google/uuid"
 )
@@ -16,6 +21,94 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	entitykindFields := schema.EntityKind{}.Fields()
+	_ = entitykindFields
+	// entitykindDescName is the schema descriptor for name field.
+	entitykindDescName := entitykindFields[1].Descriptor()
+	// entitykind.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	entitykind.NameValidator = entitykindDescName.Validators[0].(func(string) error)
+	// entitykindDescKey is the schema descriptor for key field.
+	entitykindDescKey := entitykindFields[2].Descriptor()
+	// entitykind.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	entitykind.KeyValidator = entitykindDescKey.Validators[0].(func(string) error)
+	// entitykindDescCreatedAt is the schema descriptor for created_at field.
+	entitykindDescCreatedAt := entitykindFields[3].Descriptor()
+	// entitykind.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entitykind.DefaultCreatedAt = entitykindDescCreatedAt.Default.(func() time.Time)
+	// entitykindDescUpdatedAt is the schema descriptor for updated_at field.
+	entitykindDescUpdatedAt := entitykindFields[4].Descriptor()
+	// entitykind.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	entitykind.DefaultUpdatedAt = entitykindDescUpdatedAt.Default.(func() time.Time)
+	// entitykind.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	entitykind.UpdateDefaultUpdatedAt = entitykindDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entitykindDescID is the schema descriptor for id field.
+	entitykindDescID := entitykindFields[0].Descriptor()
+	// entitykind.DefaultID holds the default value on creation for the id field.
+	entitykind.DefaultID = entitykindDescID.Default.(func() uuid.UUID)
+	projectFields := schema.Project{}.Fields()
+	_ = projectFields
+	// projectDescName is the schema descriptor for name field.
+	projectDescName := projectFields[3].Descriptor()
+	// project.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	project.NameValidator = projectDescName.Validators[0].(func(string) error)
+	// projectDescCreatedAt is the schema descriptor for created_at field.
+	projectDescCreatedAt := projectFields[5].Descriptor()
+	// project.DefaultCreatedAt holds the default value on creation for the created_at field.
+	project.DefaultCreatedAt = projectDescCreatedAt.Default.(func() time.Time)
+	// projectDescUpdatedAt is the schema descriptor for updated_at field.
+	projectDescUpdatedAt := projectFields[6].Descriptor()
+	// project.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	project.DefaultUpdatedAt = projectDescUpdatedAt.Default.(func() time.Time)
+	// project.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	project.UpdateDefaultUpdatedAt = projectDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// projectDescID is the schema descriptor for id field.
+	projectDescID := projectFields[0].Descriptor()
+	// project.DefaultID holds the default value on creation for the id field.
+	project.DefaultID = projectDescID.Default.(func() uuid.UUID)
+	statedefinitionsFields := schema.StateDefinitions{}.Fields()
+	_ = statedefinitionsFields
+	// statedefinitionsDescKey is the schema descriptor for key field.
+	statedefinitionsDescKey := statedefinitionsFields[2].Descriptor()
+	// statedefinitions.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	statedefinitions.KeyValidator = statedefinitionsDescKey.Validators[0].(func(string) error)
+	// statedefinitionsDescName is the schema descriptor for name field.
+	statedefinitionsDescName := statedefinitionsFields[3].Descriptor()
+	// statedefinitions.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	statedefinitions.NameValidator = statedefinitionsDescName.Validators[0].(func(string) error)
+	// statedefinitionsDescCreatedAt is the schema descriptor for created_at field.
+	statedefinitionsDescCreatedAt := statedefinitionsFields[4].Descriptor()
+	// statedefinitions.DefaultCreatedAt holds the default value on creation for the created_at field.
+	statedefinitions.DefaultCreatedAt = statedefinitionsDescCreatedAt.Default.(func() time.Time)
+	// statedefinitionsDescUpdatedAt is the schema descriptor for updated_at field.
+	statedefinitionsDescUpdatedAt := statedefinitionsFields[5].Descriptor()
+	// statedefinitions.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	statedefinitions.DefaultUpdatedAt = statedefinitionsDescUpdatedAt.Default.(func() time.Time)
+	// statedefinitions.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	statedefinitions.UpdateDefaultUpdatedAt = statedefinitionsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// statedefinitionsDescID is the schema descriptor for id field.
+	statedefinitionsDescID := statedefinitionsFields[0].Descriptor()
+	// statedefinitions.DefaultID holds the default value on creation for the id field.
+	statedefinitions.DefaultID = statedefinitionsDescID.Default.(func() uuid.UUID)
+	tenantFields := schema.Tenant{}.Fields()
+	_ = tenantFields
+	// tenantDescName is the schema descriptor for name field.
+	tenantDescName := tenantFields[1].Descriptor()
+	// tenant.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	tenant.NameValidator = tenantDescName.Validators[0].(func(string) error)
+	// tenantDescCreatedAt is the schema descriptor for created_at field.
+	tenantDescCreatedAt := tenantFields[5].Descriptor()
+	// tenant.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenant.DefaultCreatedAt = tenantDescCreatedAt.Default.(func() time.Time)
+	// tenantDescUpdatedAt is the schema descriptor for updated_at field.
+	tenantDescUpdatedAt := tenantFields[6].Descriptor()
+	// tenant.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenant.DefaultUpdatedAt = tenantDescUpdatedAt.Default.(func() time.Time)
+	// tenant.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenant.UpdateDefaultUpdatedAt = tenantDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenantDescID is the schema descriptor for id field.
+	tenantDescID := tenantFields[0].Descriptor()
+	// tenant.DefaultID holds the default value on creation for the id field.
+	tenant.DefaultID = tenantDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescEmail is the schema descriptor for email field.
@@ -23,11 +116,11 @@ func init() {
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[2].Descriptor()
+	userDescCreatedAt := userFields[3].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[3].Descriptor()
+	userDescUpdatedAt := userFields[4].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -42,6 +135,16 @@ func init() {
 	usercredentialDescPasswordHash := usercredentialFields[1].Descriptor()
 	// usercredential.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	usercredential.PasswordHashValidator = usercredentialDescPasswordHash.Validators[0].(func(string) error)
+	// usercredentialDescCreatedAt is the schema descriptor for created_at field.
+	usercredentialDescCreatedAt := usercredentialFields[3].Descriptor()
+	// usercredential.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usercredential.DefaultCreatedAt = usercredentialDescCreatedAt.Default.(func() time.Time)
+	// usercredentialDescUpdatedAt is the schema descriptor for updated_at field.
+	usercredentialDescUpdatedAt := usercredentialFields[4].Descriptor()
+	// usercredential.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	usercredential.DefaultUpdatedAt = usercredentialDescUpdatedAt.Default.(func() time.Time)
+	// usercredential.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	usercredential.UpdateDefaultUpdatedAt = usercredentialDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// usercredentialDescID is the schema descriptor for id field.
 	usercredentialDescID := usercredentialFields[0].Descriptor()
 	// usercredential.DefaultID holds the default value on creation for the id field.
@@ -49,19 +152,19 @@ func init() {
 	usersessionFields := schema.UserSession{}.Fields()
 	_ = usersessionFields
 	// usersessionDescRefreshTokenHash is the schema descriptor for refresh_token_hash field.
-	usersessionDescRefreshTokenHash := usersessionFields[1].Descriptor()
+	usersessionDescRefreshTokenHash := usersessionFields[2].Descriptor()
 	// usersession.RefreshTokenHashValidator is a validator for the "refresh_token_hash" field. It is called by the builders before save.
 	usersession.RefreshTokenHashValidator = usersessionDescRefreshTokenHash.Validators[0].(func(string) error)
 	// usersessionDescUserAgent is the schema descriptor for user_agent field.
-	usersessionDescUserAgent := usersessionFields[2].Descriptor()
+	usersessionDescUserAgent := usersessionFields[3].Descriptor()
 	// usersession.UserAgentValidator is a validator for the "user_agent" field. It is called by the builders before save.
 	usersession.UserAgentValidator = usersessionDescUserAgent.Validators[0].(func(string) error)
 	// usersessionDescCreatedAt is the schema descriptor for created_at field.
-	usersessionDescCreatedAt := usersessionFields[6].Descriptor()
+	usersessionDescCreatedAt := usersessionFields[7].Descriptor()
 	// usersession.DefaultCreatedAt holds the default value on creation for the created_at field.
 	usersession.DefaultCreatedAt = usersessionDescCreatedAt.Default.(func() time.Time)
 	// usersessionDescUpdatedAt is the schema descriptor for updated_at field.
-	usersessionDescUpdatedAt := usersessionFields[7].Descriptor()
+	usersessionDescUpdatedAt := usersessionFields[8].Descriptor()
 	// usersession.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	usersession.DefaultUpdatedAt = usersessionDescUpdatedAt.Default.(func() time.Time)
 	// usersession.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -70,4 +173,28 @@ func init() {
 	usersessionDescID := usersessionFields[0].Descriptor()
 	// usersession.DefaultID holds the default value on creation for the id field.
 	usersession.DefaultID = usersessionDescID.Default.(func() uuid.UUID)
+	workspaceFields := schema.Workspace{}.Fields()
+	_ = workspaceFields
+	// workspaceDescName is the schema descriptor for name field.
+	workspaceDescName := workspaceFields[2].Descriptor()
+	// workspace.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	workspace.NameValidator = workspaceDescName.Validators[0].(func(string) error)
+	// workspaceDescSlug is the schema descriptor for slug field.
+	workspaceDescSlug := workspaceFields[3].Descriptor()
+	// workspace.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	workspace.SlugValidator = workspaceDescSlug.Validators[0].(func(string) error)
+	// workspaceDescCreatedAt is the schema descriptor for created_at field.
+	workspaceDescCreatedAt := workspaceFields[6].Descriptor()
+	// workspace.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workspace.DefaultCreatedAt = workspaceDescCreatedAt.Default.(func() time.Time)
+	// workspaceDescUpdatedAt is the schema descriptor for updated_at field.
+	workspaceDescUpdatedAt := workspaceFields[7].Descriptor()
+	// workspace.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workspace.DefaultUpdatedAt = workspaceDescUpdatedAt.Default.(func() time.Time)
+	// workspace.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workspace.UpdateDefaultUpdatedAt = workspaceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// workspaceDescID is the schema descriptor for id field.
+	workspaceDescID := workspaceFields[0].Descriptor()
+	// workspace.DefaultID holds the default value on creation for the id field.
+	workspace.DefaultID = workspaceDescID.Default.(func() uuid.UUID)
 }

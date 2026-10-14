@@ -9,6 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
+	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/google/uuid"
@@ -21,10 +23,14 @@ type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// StatusID holds the value of the "status_id" field.
+	StatusID uuid.UUID `json:"status_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -37,9 +43,15 @@ type UserEdges struct {
 	Credentials *UserCredential `json:"credentials,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*UserSession `json:"sessions,omitempty"`
+	// State holds the value of the state edge.
+	State *StateDefinitions `json:"state,omitempty"`
+	// Tenant holds the value of the tenant edge.
+	Tenant *Tenant `json:"tenant,omitempty"`
+	// Creator holds the value of the creator edge.
+	Creator []*Workspace `json:"creator,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // CredentialsOrErr returns the Credentials value or an error if the edge
@@ -62,6 +74,37 @@ func (e UserEdges) SessionsOrErr() ([]*UserSession, error) {
 	return nil, &NotLoadedError{edge: "sessions"}
 }
 
+// StateOrErr returns the State value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) StateOrErr() (*StateDefinitions, error) {
+	if e.State != nil {
+		return e.State, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: statedefinitions.Label}
+	}
+	return nil, &NotLoadedError{edge: "state"}
+}
+
+// TenantOrErr returns the Tenant value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) TenantOrErr() (*Tenant, error) {
+	if e.Tenant != nil {
+		return e.Tenant, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: tenant.Label}
+	}
+	return nil, &NotLoadedError{edge: "tenant"}
+}
+
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatorOrErr() ([]*Workspace, error) {
+	if e.loadedTypes[4] {
+		return e.Creator, nil
+	}
+	return nil, &NotLoadedError{edge: "creator"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -69,9 +112,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmail:
 			values[i] = new(sql.NullString)
-		case user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID:
+		case user.FieldID, user.FieldStatusID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -100,6 +143,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Email = value.String
 			}
+		case user.FieldStatusID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field status_id", values[i])
+			} else if value != nil {
+				_m.StatusID = *value
+			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -111,6 +160,13 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case user.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				_m.DeletedAt = new(time.Time)
+				*_m.DeletedAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -133,6 +189,21 @@ func (_m *User) QueryCredentials() *UserCredentialQuery {
 // QuerySessions queries the "sessions" edge of the User entity.
 func (_m *User) QuerySessions() *UserSessionQuery {
 	return NewUserClient(_m.config).QuerySessions(_m)
+}
+
+// QueryState queries the "state" edge of the User entity.
+func (_m *User) QueryState() *StateDefinitionsQuery {
+	return NewUserClient(_m.config).QueryState(_m)
+}
+
+// QueryTenant queries the "tenant" edge of the User entity.
+func (_m *User) QueryTenant() *TenantQuery {
+	return NewUserClient(_m.config).QueryTenant(_m)
+}
+
+// QueryCreator queries the "creator" edge of the User entity.
+func (_m *User) QueryCreator() *WorkspaceQuery {
+	return NewUserClient(_m.config).QueryCreator(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -161,11 +232,19 @@ func (_m *User) String() string {
 	builder.WriteString("email=")
 	builder.WriteString(_m.Email)
 	builder.WriteString(", ")
+	builder.WriteString("status_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StatusID))
+	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := _m.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

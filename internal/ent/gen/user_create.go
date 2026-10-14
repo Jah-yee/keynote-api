@@ -10,9 +10,12 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
+	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
+	"github.com/caneel7/keynote-api/internal/ent/gen/workspace"
 	"github.com/google/uuid"
 )
 
@@ -26,6 +29,12 @@ type UserCreate struct {
 // SetEmail sets the "email" field.
 func (_c *UserCreate) SetEmail(v string) *UserCreate {
 	_c.mutation.SetEmail(v)
+	return _c
+}
+
+// SetStatusID sets the "status_id" field.
+func (_c *UserCreate) SetStatusID(v uuid.UUID) *UserCreate {
+	_c.mutation.SetStatusID(v)
 	return _c
 }
 
@@ -53,6 +62,20 @@ func (_c *UserCreate) SetUpdatedAt(v time.Time) *UserCreate {
 func (_c *UserCreate) SetNillableUpdatedAt(v *time.Time) *UserCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_c *UserCreate) SetDeletedAt(v time.Time) *UserCreate {
+	_c.mutation.SetDeletedAt(v)
+	return _c
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDeletedAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetDeletedAt(*v)
 	}
 	return _c
 }
@@ -103,6 +126,51 @@ func (_c *UserCreate) AddSessions(v ...*UserSession) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddSessionIDs(ids...)
+}
+
+// SetStateID sets the "state" edge to the StateDefinitions entity by ID.
+func (_c *UserCreate) SetStateID(id uuid.UUID) *UserCreate {
+	_c.mutation.SetStateID(id)
+	return _c
+}
+
+// SetState sets the "state" edge to the StateDefinitions entity.
+func (_c *UserCreate) SetState(v *StateDefinitions) *UserCreate {
+	return _c.SetStateID(v.ID)
+}
+
+// SetTenantID sets the "tenant" edge to the Tenant entity by ID.
+func (_c *UserCreate) SetTenantID(id uuid.UUID) *UserCreate {
+	_c.mutation.SetTenantID(id)
+	return _c
+}
+
+// SetNillableTenantID sets the "tenant" edge to the Tenant entity by ID if the given value is not nil.
+func (_c *UserCreate) SetNillableTenantID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		_c = _c.SetTenantID(*id)
+	}
+	return _c
+}
+
+// SetTenant sets the "tenant" edge to the Tenant entity.
+func (_c *UserCreate) SetTenant(v *Tenant) *UserCreate {
+	return _c.SetTenantID(v.ID)
+}
+
+// AddCreatorIDs adds the "creator" edge to the Workspace entity by IDs.
+func (_c *UserCreate) AddCreatorIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatorIDs(ids...)
+	return _c
+}
+
+// AddCreator adds the "creator" edges to the Workspace entity.
+func (_c *UserCreate) AddCreator(v ...*Workspace) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatorIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -164,11 +232,17 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`gen: validator failed for field "User.email": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.StatusID(); !ok {
+		return &ValidationError{Name: "status_id", err: errors.New(`gen: missing required field "User.status_id"`)}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "User.created_at"`)}
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`gen: missing required field "User.updated_at"`)}
+	}
+	if len(_c.mutation.StateIDs()) == 0 {
+		return &ValidationError{Name: "state", err: errors.New(`gen: missing required edge "User.state"`)}
 	}
 	return nil
 }
@@ -217,6 +291,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.DeletedAt(); ok {
+		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
+	}
 	if nodes := _c.mutation.CredentialsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
@@ -242,6 +320,55 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usersession.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.StateTable,
+			Columns: []string{user.StateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(statedefinitions.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.StatusID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TenantIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TenantTable,
+			Columns: []string{user.TenantColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenant.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatorTable,
+			Columns: []string{user.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

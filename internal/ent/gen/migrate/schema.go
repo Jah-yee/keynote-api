@@ -8,24 +8,150 @@ import (
 )
 
 var (
+	// EntityKindsColumns holds the columns for the "entity_kinds" table.
+	EntityKindsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// EntityKindsTable holds the schema information for the "entity_kinds" table.
+	EntityKindsTable = &schema.Table{
+		Name:       "entity_kinds",
+		Columns:    EntityKindsColumns,
+		PrimaryKey: []*schema.Column{EntityKindsColumns[0]},
+	}
+	// ProjectsColumns holds the columns for the "projects" table.
+	ProjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "workspace_id", Type: field.TypeUUID},
+	}
+	// ProjectsTable holds the schema information for the "projects" table.
+	ProjectsTable = &schema.Table{
+		Name:       "projects",
+		Columns:    ProjectsColumns,
+		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "projects_state_definitions_projects",
+				Columns:    []*schema.Column{ProjectsColumns[5]},
+				RefColumns: []*schema.Column{StateDefinitionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "projects_tenants_projects",
+				Columns:    []*schema.Column{ProjectsColumns[6]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "projects_workspaces_projects",
+				Columns:    []*schema.Column{ProjectsColumns[7]},
+				RefColumns: []*schema.Column{WorkspacesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// StateDefinitionsColumns holds the columns for the "state_definitions" table.
+	StateDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "key", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "entity_id", Type: field.TypeUUID},
+	}
+	// StateDefinitionsTable holds the schema information for the "state_definitions" table.
+	StateDefinitionsTable = &schema.Table{
+		Name:       "state_definitions",
+		Columns:    StateDefinitionsColumns,
+		PrimaryKey: []*schema.Column{StateDefinitionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "state_definitions_entity_kinds_state_definitions",
+				Columns:    []*schema.Column{StateDefinitionsColumns[6]},
+				RefColumns: []*schema.Column{EntityKindsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "statedefinitions_key_entity_id",
+				Unique:  true,
+				Columns: []*schema.Column{StateDefinitionsColumns[1], StateDefinitionsColumns[6]},
+			},
+		},
+	}
+	// TenantsColumns holds the columns for the "tenants" table.
+	TenantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID, Unique: true},
+	}
+	// TenantsTable holds the schema information for the "tenants" table.
+	TenantsTable = &schema.Table{
+		Name:       "tenants",
+		Columns:    TenantsColumns,
+		PrimaryKey: []*schema.Column{TenantsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tenants_state_definitions_tenants",
+				Columns:    []*schema.Column{TenantsColumns[6]},
+				RefColumns: []*schema.Column{StateDefinitionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "tenants_users_tenant",
+				Columns:    []*schema.Column{TenantsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status_id", Type: field.TypeUUID},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_state_definitions_user",
+				Columns:    []*schema.Column{UsersColumns[5]},
+				RefColumns: []*schema.Column{StateDefinitionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// UserCredentialsColumns holds the columns for the "user_credentials" table.
 	UserCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "password_hash", Type: field.TypeString},
-		{Name: "user_credentials", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true},
 	}
 	// UserCredentialsTable holds the schema information for the "user_credentials" table.
 	UserCredentialsTable = &schema.Table{
@@ -35,7 +161,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_credentials_users_credentials",
-				Columns:    []*schema.Column{UserCredentialsColumns[2]},
+				Columns:    []*schema.Column{UserCredentialsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -51,7 +177,7 @@ var (
 		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_sessions", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// UserSessionsTable holds the schema information for the "user_sessions" table.
 	UserSessionsTable = &schema.Table{
@@ -68,21 +194,74 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "usersession_user_sessions",
+				Name:    "usersession_user_id",
 				Unique:  false,
 				Columns: []*schema.Column{UserSessionsColumns[8]},
 			},
 		},
 	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_by", Type: field.TypeUUID},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspaces_state_definitions_workspace",
+				Columns:    []*schema.Column{WorkspacesColumns[6]},
+				RefColumns: []*schema.Column{StateDefinitionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspaces_tenants_workspace",
+				Columns:    []*schema.Column{WorkspacesColumns[7]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "workspaces_users_creator",
+				Columns:    []*schema.Column{WorkspacesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		EntityKindsTable,
+		ProjectsTable,
+		StateDefinitionsTable,
+		TenantsTable,
 		UsersTable,
 		UserCredentialsTable,
 		UserSessionsTable,
+		WorkspacesTable,
 	}
 )
 
 func init() {
+	ProjectsTable.ForeignKeys[0].RefTable = StateDefinitionsTable
+	ProjectsTable.ForeignKeys[1].RefTable = TenantsTable
+	ProjectsTable.ForeignKeys[2].RefTable = WorkspacesTable
+	StateDefinitionsTable.ForeignKeys[0].RefTable = EntityKindsTable
+	TenantsTable.ForeignKeys[0].RefTable = StateDefinitionsTable
+	TenantsTable.ForeignKeys[1].RefTable = UsersTable
+	UsersTable.ForeignKeys[0].RefTable = StateDefinitionsTable
 	UserCredentialsTable.ForeignKeys[0].RefTable = UsersTable
 	UserSessionsTable.ForeignKeys[0].RefTable = UsersTable
+	WorkspacesTable.ForeignKeys[0].RefTable = StateDefinitionsTable
+	WorkspacesTable.ForeignKeys[1].RefTable = TenantsTable
+	WorkspacesTable.ForeignKeys[2].RefTable = UsersTable
 }

@@ -3,10 +3,11 @@ package register
 import (
 	"context"
 	"net/http"
+	"time"
 
-	"github.com/danielgtaylor/huma/v2"
 	httpError "github.com/caneel7/keynote-api/internal/errors"
-	types "github.com/caneel7/keynote-api/internal/types"
+	"github.com/caneel7/keynote-api/internal/features/auth/login"
+	"github.com/danielgtaylor/huma/v2"
 )
 
 type Registrar interface {
@@ -14,7 +15,7 @@ type Registrar interface {
 		ctx context.Context,
 		email string,
 		password string,
-	) (types.User, error)
+	) (login.LoginOutput, error)
 }
 
 type RegisterUserRequest struct {
@@ -24,12 +25,6 @@ type RegisterUserRequest struct {
 	}
 }
 
-type RegisterUserResponse struct {
-	Body struct {
-		ID    string `json:"id" format:"uuid" doc:"Registered user's generated ID"`
-		Email string `json:"email" format:"email" doc:"Registered user's email address"`
-	}
-}
 
 func RegisterUserRoute(api huma.API,svc Registrar) {
 	huma.Register(
@@ -43,14 +38,25 @@ func RegisterUserRoute(api huma.API,svc Registrar) {
 			Summary: "Register new user",
 			Description: "Register new user in system",
 		},
-		func (ctx context.Context,req *RegisterUserRequest) (*RegisterUserResponse,error) {
-			u, err := svc.Register(ctx,req.Body.Email,req.Body.Password)
+		func (ctx context.Context,req *RegisterUserRequest) (*login.LoginResponse,error) {
+			r, err := svc.Register(ctx,req.Body.Email,req.Body.Password)
 			if err != nil {
 				return nil, httpError.From(err)
 			}
-			res := &RegisterUserResponse{}
-			res.Body.Email = u.Email
-			res.Body.ID = u.ID.String()
+			res := &login.LoginResponse{}
+			res.Body.Token = r.AccessToken
+			res.Body.TokenType = "Bearer"
+			res.Body.ExpiresIn = int(time.Until(r.ExpireAT).Seconds())
+			res.SetCookie = http.Cookie{
+				Name: "refresh_token",
+				Value: r.RefreshToken,
+				Path: "/auth",
+				Expires: time.Now().Add(r.RefreshTokenExpireAt),
+				HttpOnly: true,
+				Secure: true,
+				SameSite: http.SameSiteStrictMode,
+			}
+			
 			return res,nil
 		},
 	)

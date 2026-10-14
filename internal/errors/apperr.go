@@ -5,6 +5,7 @@ type Kind int
 const (
 	KindInternal Kind = iota
 	KindInvalid
+	KindBadRequest
 	KindUnauthenticated
 	KindForbidden
 	KindNotFound

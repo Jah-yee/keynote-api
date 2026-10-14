@@ -15,6 +15,7 @@ type UserSession struct{ ent.Schema }
 func (UserSession) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("user_id",uuid.UUID{}),
 		field.String("refresh_token_hash").NotEmpty().Unique().Sensitive(),
 		field.String("user_agent").Optional().MaxLen(512),
 		field.Time("expires_at"),
@@ -27,7 +28,7 @@ func (UserSession) Fields() []ent.Field {
 
 func (UserSession) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).Ref("sessions").Unique().Required(),
+		edge.From("user", User.Type).Ref("sessions").Field("user_id").Unique().Required(),
 	}
 }
 

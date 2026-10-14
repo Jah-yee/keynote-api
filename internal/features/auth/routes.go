@@ -19,10 +19,30 @@ func Mount(
 	db *gen.Client,
 	signer *tokens.Signer,
 ) {
-	register.RegisterUserRoute(public, register.NewService(db))
+	
+	/*
+	* @path : "/.well-known/jwks.json"
+	*/
 	jwks.JwksRoute(public, signer)
+
+	/*
+	* @path : "/register"
+	*/
+	register.RegisterUserRoute(public, register.NewService(db,signer))
+
+	/*
+	* @path : "/login"
+	*/
 	login.LoginRoute(public, login.NewService(db, signer))
+
+	/*
+	* @path : "/refresh"
+	*/
 	refresh.RefreshTokenRoute(public,refresh.NewService(db,signer))
+
+	/*
+	* @path : "/me"
+	*/
 	me.GetMeRoute(protected, me.NewService(db))
 
 }
