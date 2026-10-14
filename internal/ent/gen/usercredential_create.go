@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -24,6 +25,34 @@ type UserCredentialCreate struct {
 // SetPasswordHash sets the "password_hash" field.
 func (_c *UserCredentialCreate) SetPasswordHash(v string) *UserCredentialCreate {
 	_c.mutation.SetPasswordHash(v)
+	return _c
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (_c *UserCredentialCreate) SetCreatedAt(v time.Time) *UserCredentialCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *UserCredentialCreate) SetNillableCreatedAt(v *time.Time) *UserCredentialCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_c *UserCredentialCreate) SetUpdatedAt(v time.Time) *UserCredentialCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *UserCredentialCreate) SetNillableUpdatedAt(v *time.Time) *UserCredentialCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
 	return _c
 }
 
@@ -87,6 +116,14 @@ func (_c *UserCredentialCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *UserCredentialCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := usercredential.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := usercredential.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := usercredential.DefaultID()
 		_c.mutation.SetID(v)
@@ -102,6 +139,12 @@ func (_c *UserCredentialCreate) check() error {
 		if err := usercredential.PasswordHashValidator(v); err != nil {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`gen: validator failed for field "UserCredential.password_hash": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "UserCredential.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`gen: missing required field "UserCredential.updated_at"`)}
 	}
 	if len(_c.mutation.UsersIDs()) == 0 {
 		return &ValidationError{Name: "users", err: errors.New(`gen: missing required edge "UserCredential.users"`)}
@@ -144,6 +187,14 @@ func (_c *UserCredentialCreate) createSpec() (*UserCredential, *sqlgraph.CreateS
 	if value, ok := _c.mutation.PasswordHash(); ok {
 		_spec.SetField(usercredential.FieldPasswordHash, field.TypeString, value)
 		_node.PasswordHash = value
+	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(usercredential.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(usercredential.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if nodes := _c.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

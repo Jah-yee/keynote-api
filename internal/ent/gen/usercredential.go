@@ -5,6 +5,7 @@ package gen
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -20,6 +21,10 @@ type UserCredential struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"-"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserCredentialQuery when eager-loading is set.
 	Edges            UserCredentialEdges `json:"edges"`
@@ -54,6 +59,8 @@ func (*UserCredential) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usercredential.FieldPasswordHash:
 			values[i] = new(sql.NullString)
+		case usercredential.FieldCreatedAt, usercredential.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		case usercredential.FieldID:
 			values[i] = new(uuid.UUID)
 		case usercredential.ForeignKeys[0]: // user_credentials
@@ -84,6 +91,18 @@ func (_m *UserCredential) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field password_hash", values[i])
 			} else if value.Valid {
 				_m.PasswordHash = value.String
+			}
+		case usercredential.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case usercredential.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
 			}
 		case usercredential.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -134,6 +153,12 @@ func (_m *UserCredential) String() string {
 	builder.WriteString("UserCredential(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("password_hash=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

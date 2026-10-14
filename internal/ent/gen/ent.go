@@ -12,6 +12,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/caneel7/keynote-api/internal/ent/gen/entitykind"
+	"github.com/caneel7/keynote-api/internal/ent/gen/statedefinitions"
+	"github.com/caneel7/keynote-api/internal/ent/gen/tenant"
 	"github.com/caneel7/keynote-api/internal/ent/gen/user"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usercredential"
 	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
@@ -75,9 +78,12 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			user.Table:           user.ValidColumn,
-			usercredential.Table: usercredential.ValidColumn,
-			usersession.Table:    usersession.ValidColumn,
+			entitykind.Table:       entitykind.ValidColumn,
+			statedefinitions.Table: statedefinitions.ValidColumn,
+			tenant.Table:           tenant.ValidColumn,
+			user.Table:             user.ValidColumn,
+			usercredential.Table:   usercredential.ValidColumn,
+			usersession.Table:      usersession.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

@@ -9,6 +9,42 @@ import (
 	"github.com/caneel7/keynote-api/internal/ent/gen"
 )
 
+// The EntityKindFunc type is an adapter to allow the use of ordinary
+// function as EntityKind mutator.
+type EntityKindFunc func(context.Context, *gen.EntityKindMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EntityKindFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.EntityKindMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.EntityKindMutation", m)
+}
+
+// The StateDefinitionsFunc type is an adapter to allow the use of ordinary
+// function as StateDefinitions mutator.
+type StateDefinitionsFunc func(context.Context, *gen.StateDefinitionsMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StateDefinitionsFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.StateDefinitionsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.StateDefinitionsMutation", m)
+}
+
+// The TenantFunc type is an adapter to allow the use of ordinary
+// function as Tenant mutator.
+type TenantFunc func(context.Context, *gen.TenantMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.TenantMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.TenantMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *gen.UserMutation) (gen.Value, error)

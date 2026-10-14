@@ -8,12 +8,83 @@ import (
 )
 
 var (
+	// EntityKindsColumns holds the columns for the "entity_kinds" table.
+	EntityKindsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// EntityKindsTable holds the schema information for the "entity_kinds" table.
+	EntityKindsTable = &schema.Table{
+		Name:       "entity_kinds",
+		Columns:    EntityKindsColumns,
+		PrimaryKey: []*schema.Column{EntityKindsColumns[0]},
+	}
+	// StateDefinitionsColumns holds the columns for the "state_definitions" table.
+	StateDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "key", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "entity_kind_state_definitions", Type: field.TypeUUID},
+	}
+	// StateDefinitionsTable holds the schema information for the "state_definitions" table.
+	StateDefinitionsTable = &schema.Table{
+		Name:       "state_definitions",
+		Columns:    StateDefinitionsColumns,
+		PrimaryKey: []*schema.Column{StateDefinitionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "state_definitions_entity_kinds_state_definitions",
+				Columns:    []*schema.Column{StateDefinitionsColumns[6]},
+				RefColumns: []*schema.Column{EntityKindsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "statedefinitions_key_entity_kind_state_definitions",
+				Unique:  true,
+				Columns: []*schema.Column{StateDefinitionsColumns[1], StateDefinitionsColumns[6]},
+			},
+		},
+	}
+	// TenantsColumns holds the columns for the "tenants" table.
+	TenantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "state_definitions_tenants", Type: field.TypeUUID},
+	}
+	// TenantsTable holds the schema information for the "tenants" table.
+	TenantsTable = &schema.Table{
+		Name:       "tenants",
+		Columns:    TenantsColumns,
+		PrimaryKey: []*schema.Column{TenantsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tenants_state_definitions_tenants",
+				Columns:    []*schema.Column{TenantsColumns[6]},
+				RefColumns: []*schema.Column{StateDefinitionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -25,6 +96,8 @@ var (
 	UserCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "password_hash", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_credentials", Type: field.TypeUUID, Unique: true},
 	}
 	// UserCredentialsTable holds the schema information for the "user_credentials" table.
@@ -35,7 +108,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_credentials_users_credentials",
-				Columns:    []*schema.Column{UserCredentialsColumns[2]},
+				Columns:    []*schema.Column{UserCredentialsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -76,6 +149,9 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		EntityKindsTable,
+		StateDefinitionsTable,
+		TenantsTable,
 		UsersTable,
 		UserCredentialsTable,
 		UserSessionsTable,
@@ -83,6 +159,8 @@ var (
 )
 
 func init() {
+	StateDefinitionsTable.ForeignKeys[0].RefTable = EntityKindsTable
+	TenantsTable.ForeignKeys[0].RefTable = StateDefinitionsTable
 	UserCredentialsTable.ForeignKeys[0].RefTable = UsersTable
 	UserSessionsTable.ForeignKeys[0].RefTable = UsersTable
 }
