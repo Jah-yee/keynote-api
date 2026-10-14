@@ -163,6 +163,44 @@ go run ./cmd/migrate
 
 This opens the PostgreSQL connection from the environment config and runs pending migration files in filename order.
 
+Generating Ent code and Atlas migrations
+Generate Ent code
+
+After modifying or adding Ent schemas under internal/ent/schema/, regenerate the Ent client and related code:
+
+```bas
+go generate ./internal/ent/
+```
+
+Review the generated changes before committing them.
+
+Generate Atlas migrations
+
+After updating the Ent schemas, generate a new Atlas migration using:
+
+```bash
+atlas migrate diff {name} --env local
+```
+
+Replace {name} with a descriptive migration name, such as add_user_sessions.
+
+The generated SQL migration files are stored under migrate/migrations/. Review the generated SQL before applying the migration.
+
+Apply database migrations
+
+Once the migration files have been generated and reviewed, apply pending migrations to the configured PostgreSQL database:
+
+go run ./cmd/migrate
+
+
+Recommended workflow:
+
+Update the Ent schemas in internal/ent/schema/.
+Regenerate the Ent client using go generate ./internal/ent/.
+Generate an Atlas migration using atlas migrate diff {name} --env local.
+Review the generated migration SQL.
+Apply the migration using go run ./cmd/migrate.
+
 ## API
 
 ### Health check
