@@ -147,6 +147,11 @@ func NewRefreshToken() (plain, hash string, ttl time.Duration, err error) {
 	return plain, hex.EncodeToString(sum[:]),refreshTokenTTl, nil
 }
 
+func Hash(raw string) string {
+    sum := sha256.Sum256([]byte(raw))
+    return hex.EncodeToString(sum[:])
+}
+
 func (s *Signer) Verify(token string) (Claims,error) {
 
 	var claims Claims

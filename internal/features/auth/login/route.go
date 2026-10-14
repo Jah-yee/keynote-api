@@ -14,7 +14,7 @@ type Authenticate interface {
 		ctx context.Context,
 		email string,
 		password string,
-	) (loginOutput, error)
+	) (LoginOutput, error)
 }
 
 type LoginRequest struct {
