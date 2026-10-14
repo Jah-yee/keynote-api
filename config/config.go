@@ -31,7 +31,7 @@ type Database struct {
 	Username string `env:"DATABASE_USERNAME,required"`
 	Password string `env:"DATABASE_PASSWORD,required"`
 	Name     string `env:"DATABASE_NAME,required"`
-	SSLMode  string `env:"DATABASE_SSLMODE" envDefault:"disabled"`
+	SSLMode  string `env:"DATABASE_SSLMODE" envDefault:"disable"`
 
 	MaxOpenConnections int           `env:"DATABASE_MAX_OPEN_CONNECTIONS" envDefault:"15"`
 	MaxIdleConnections int           `env:"DATABASE_MAX_IDLE_CONNECTIONS" envDefault:"5"`

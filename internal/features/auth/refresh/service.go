@@ -6,24 +6,24 @@ import (
 
 	"github.com/caneel7/keynote-api/internal/common/tokens"
 	"github.com/caneel7/keynote-api/internal/ent/gen"
-	"github.com/caneel7/keynote-api/internal/ent/gen/UserSession"
+	"github.com/caneel7/keynote-api/internal/ent/gen/usersession"
 	"github.com/caneel7/keynote-api/internal/errors"
 	login "github.com/caneel7/keynote-api/internal/features/auth/login"
 )
 
 type Service struct {
-	db *gen.Client
+	db     *gen.Client
 	signer *tokens.Signer
 }
 
-func NewService(db *gen.Client,signer *tokens.Signer) *Service {
-	return &Service{db,signer}
+func NewService(db *gen.Client, signer *tokens.Signer) *Service {
+	return &Service{db, signer}
 }
 
 func (s *Service) RefreshToken(
 	ctx context.Context,
 	refreshToken string,
-) (login.LoginOutput,error) {
+) (login.LoginOutput, error) {
 
 	var output login.LoginOutput
 
@@ -33,7 +33,7 @@ func (s *Service) RefreshToken(
 		).
 		WithUser().
 		Only(ctx)
-	
+
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return output, errors.InvalidCredentials()
@@ -67,5 +67,5 @@ func (s *Service) RefreshToken(
 	output.ExpireAT = exp
 	output.RefreshTokenExpireAt = refreshttl
 
-	return output,nil
+	return output, nil
 }
