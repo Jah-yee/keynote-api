@@ -7,6 +7,7 @@ import (
 	"github.com/caneel7/keynote-api/internal/common/tokens"
 	"github.com/caneel7/keynote-api/internal/ent/gen"
 	"github.com/caneel7/keynote-api/internal/features/auth"
+	"github.com/caneel7/keynote-api/internal/features/project"
 	"github.com/caneel7/keynote-api/internal/features/tenant"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -42,6 +43,11 @@ func routes (db *gen.Client,signer *tokens.Signer) http.Handler {
 	* tenat api mounted : ["/tenant"]
 	*/
 	tenant.Mount(protectedAPI,db)
+
+	/*
+	* project api mounted : ["/project"]
+	*/
+	project.Mount(protectedAPI,db)
 
 	return router;
 }
